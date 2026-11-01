@@ -154,9 +154,17 @@ def main() -> None:
     files = sorted(SCREENSHOT_DIR.glob("0*.png"))
     if not files:
         raise SystemExit(f"No screenshots found in {SCREENSHOT_DIR}")
+
+    response = request("GET", f"/appScreenshotSets/{set_id}/appScreenshots")
+    existing_names = {
+        item["attributes"]["fileName"] for item in response.get("data", [])
+    }
     for path in files:
+        if path.name in existing_names:
+            print(f"skipped existing {path.name}")
+            continue
         upload(set_id, path)
-    print(f"uploaded {len(files)} screenshots to {DISPLAY_TYPE}")
+    print(f"processed {len(files)} screenshots for {DISPLAY_TYPE}")
 
 
 if __name__ == "__main__":

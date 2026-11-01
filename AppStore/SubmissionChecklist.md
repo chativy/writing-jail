@@ -5,7 +5,7 @@
 - [x] Public privacy policy and support URLs
 - [x] Apache 2.0 license
 - [x] English name, subtitle, description, keywords, and release notes
-- [x] 2880×1800 macOS screenshots
+- [x] Five 2880×1800 macOS screenshots, including full-screen focus mode
 - [x] App Review notes covering Accessibility usage
 - [x] Sandbox and user-selected file entitlements
 - [x] Privacy manifest and export-compliance declaration
@@ -27,8 +27,8 @@
 - [ ] Install the signed build on a Mac, grant Accessibility access, and verify
   Cmd-Tab and Mission Control remain blocked during a focus session. On macOS
   27 and later, macOS requires adding the app manually with `+`.
-- [x] Submit version 1.0 with build 11 for App Review. The submission entered
-  `WAITING_FOR_REVIEW` on November 1, 2026.
+- [x] Submit version 1.0 with build 11 and all five screenshots for App Review.
+  The resubmission entered `WAITING_FOR_REVIEW` on November 1, 2026.
 
 ## Review Risk
 
