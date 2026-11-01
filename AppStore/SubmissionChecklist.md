@@ -15,8 +15,8 @@
 - [x] US$10 one-time price
 - [x] Availability in all 175 App Store territories
 - [x] Mac App Store distribution certificate and provisioning profile
-- [x] Universal archive validated and uploaded (build 9)
-- [x] Build 9 attached to version 1.0
+- [x] Universal archive validated and uploaded (build 10)
+- [x] Build 10 attached to version 1.0
 - [x] App privacy questionnaire answers documented
 
 ## Manual Completion
