@@ -21,14 +21,14 @@
 
 ## Manual Completion
 
-- [ ] In App Store Connect, open **App Privacy** and answer **No** to data
-  collection. This questionnaire is not available through the public API.
+- [x] Publish App Privacy answers with no data collection.
 - [ ] Confirm the Paid Applications Agreement, tax, and banking information are
   active for the organization.
 - [ ] Install the signed build on a Mac, grant Accessibility access, and verify
   Cmd-Tab and Mission Control remain blocked during a focus session. On macOS
   27 and later, macOS requires adding the app manually with `+`.
-- [ ] Review the final version and click **Submit for Review**.
+- [x] Submit version 1.0 with build 11 for App Review. The submission entered
+  `WAITING_FOR_REVIEW` on November 1, 2026.
 
 ## Review Risk
 
