@@ -45,6 +45,14 @@ let specs = [
         title: "Open. Focus. Finish.",
         subtitle: "Choose an existing draft or begin a new Markdown file.",
         dark: true
+    ),
+    ScreenshotSpec(
+        source: "AppStore/Screenshots/raw/focus-dialog.png",
+        output: "04-focus-dialog.png",
+        eyebrow: "CHOOSE YOUR TIME",
+        title: "Five minutes or five hours.",
+        subtitle: "Pick a focus window, then let the page take over.",
+        dark: false
     )
 ]
 
