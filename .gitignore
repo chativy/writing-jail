@@ -2,6 +2,8 @@
 dist/
 .DS_Store
 *.xcuserstate
+*.xcuserdata/
+xcuserdata/
 Release/Screenshots/raw/
 build/
 *.xcarchive
