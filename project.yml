@@ -33,6 +33,8 @@ targets:
       - path: src/FocusWriter
       - path: assets/AppIcon.icns
         buildPhase: resources
+      - path: Resources/PrivacyInfo.xcprivacy
+        buildPhase: resources
     dependencies:
       - target: FocusWriterCore
         embed: true
@@ -41,7 +43,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.chativy.writingjail
         PRODUCT_NAME: WritingJail
         MARKETING_VERSION: "1.8"
-        CURRENT_PROJECT_VERSION: "9"
+        CURRENT_PROJECT_VERSION: "10"
         INFOPLIST_FILE: AppStore/Info.plist
         CODE_SIGN_ENTITLEMENTS: Resources/WritingJail.entitlements
         ENABLE_APP_SANDBOX: YES

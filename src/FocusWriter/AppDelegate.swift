@@ -64,6 +64,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         mainWindowController?.saveDraftNow()
+        mainWindowController?.stopScopedResourceAccess()
         if let keyMonitor {
             NSEvent.removeMonitor(keyMonitor)
         }

@@ -24,6 +24,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
     private let editorDocument: EditorDocument
     private let draftStore = DraftStore()
     private let inputBlocker = FocusInputBlocker()
+    private let boundFileAccess = ScopedResourceAccess()
+    private let secondaryImageAccess = ScopedResourceAccess()
     private var surface: EditorSurface!
 
     private let destinationLabel = NSTextField(labelWithString: "")
@@ -197,6 +199,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         guard response == .OK, let chosenURL = panel.url else {
             return false
         }
+        boundFileAccess.retain(chosenURL)
 
         let isDirectory = (try? chosenURL.resourceValues(
             forKeys: [.isDirectoryKey]
@@ -233,6 +236,9 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         guard panel.runModal() == .OK, let chosenURL = panel.url else {
             return false
         }
+        boundFileAccess.retain(
+            chosenURL.deletingLastPathComponent()
+        )
         applyInitialFileSelection(chosenURL)
         return true
     }
@@ -258,6 +264,10 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         let targetURL = folderURL.appendingPathComponent(fileName)
         if FileManager.default.fileExists(atPath: targetURL.path) {
             do {
+                boundFileAccess.retain(
+                    targetURL,
+                    bookmarkKey: "boundMarkdownFileBookmark"
+                )
                 let text = try String(contentsOf: targetURL, encoding: .utf8)
                 editorDocument.replaceText(text)
                 surface.textView.undoManager?.removeAllActions()
@@ -476,6 +486,13 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
                 atomically: true,
                 encoding: .utf8
             )
+            if boundFileAccess.url?.standardizedFileURL
+                != saveURL.standardizedFileURL {
+                boundFileAccess.retain(
+                    saveURL,
+                    bookmarkKey: "boundMarkdownFileBookmark"
+                )
+            }
             boundFileURL = saveURL
             stateLabel.stringValue = "Auto-saved · \(Self.clockString())"
         } catch {
@@ -511,13 +528,12 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             .flatMap(SecondaryDisplayMode.init(rawValue:))
             ?? .systemWallpaper
 
-        if let savedImagePath = UserDefaults.standard.string(
-            forKey: "secondaryDisplayImagePath"
-        ) {
-            let candidate = URL(fileURLWithPath: savedImagePath)
-            if FileManager.default.fileExists(atPath: candidate.path) {
-                secondaryImageURL = candidate
-            }
+        if let restoredImageURL = secondaryImageAccess.restore(
+            bookmarkKey: "secondaryDisplayImageBookmark",
+            fallbackPathKey: "secondaryDisplayImagePath"
+        ),
+            FileManager.default.fileExists(atPath: restoredImageURL.path) {
+            secondaryImageURL = restoredImageURL
         }
 
         if let savedColorData = UserDefaults.standard.data(
@@ -629,6 +645,10 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
                 return
             }
             secondaryImageURL = imageURL
+            secondaryImageAccess.retain(
+                imageURL,
+                bookmarkKey: "secondaryDisplayImageBookmark"
+            )
             UserDefaults.standard.set(
                 imageURL.path,
                 forKey: "secondaryDisplayImagePath"
@@ -675,6 +695,10 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         }
 
         do {
+            boundFileAccess.retain(
+                fileURL,
+                bookmarkKey: "boundMarkdownFileBookmark"
+            )
             let text = try String(contentsOf: fileURL, encoding: .utf8)
             editorDocument.replaceText(text)
             surface.textView.undoManager?.removeAllActions()
@@ -746,6 +770,14 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         let isSameFile =
             boundFileURL?.standardizedFileURL == targetURL.standardizedFileURL
         let fileExists = FileManager.default.fileExists(atPath: targetURL.path)
+        if fileExists {
+            boundFileAccess.retain(
+                targetURL,
+                bookmarkKey: "boundMarkdownFileBookmark"
+            )
+        } else {
+            boundFileAccess.retain(targetURL.deletingLastPathComponent())
+        }
 
         if !isSameFile {
             saveNow()
@@ -958,6 +990,11 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
     @objc private func configurePermission(_ sender: Any?) {
         FocusInputBlocker.requestAccessibilityPermission()
         FocusInputBlocker.openAccessibilitySettings()
+    }
+
+    func stopScopedResourceAccess() {
+        boundFileAccess.release()
+        secondaryImageAccess.release()
     }
 
     private func flexibleSpacer() -> NSView {

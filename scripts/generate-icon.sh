@@ -28,7 +28,7 @@ render_icon 256 icon_128x128@2x.png
 render_icon 256 icon_256x256.png
 render_icon 512 icon_256x256@2x.png
 render_icon 512 icon_512x512.png
-render_icon 1_024 icon_512x512@2x.png
+render_icon 1024 icon_512x512@2x.png
 
 iconutil -c icns "$iconset_dir" -o "$output_icns"
 print "Generated $output_icns"

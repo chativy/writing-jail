@@ -6,24 +6,28 @@
 - [x] Apache 2.0 license
 - [x] English name, subtitle, description, keywords, and release notes
 - [x] 2880×1800 macOS screenshots
-- [x] App privacy questionnaire answers
 - [x] App Review notes covering Accessibility usage
 - [x] Sandbox and user-selected file entitlements
+- [x] Privacy manifest and export-compliance declaration
 - [x] XcodeGen project specification
 - [x] App Store export options
+- [x] App Store record, bundle ID, SKU, category, and age rating
+- [x] US$10 one-time price
+- [x] Availability in all 175 App Store territories
+- [x] Mac App Store distribution certificate and provisioning profile
+- [x] Universal archive validated and uploaded (build 9)
+- [x] Build 9 attached to version 1.0
+- [x] App privacy questionnaire answers documented
 
-## Required Before Upload
+## Manual Completion
 
-- [ ] Confirm the App Store Connect app record and SKU.
-- [ ] Create or import an Apple Distribution signing certificate for team
-  `Y5E45NE7R9`.
-- [ ] Create the Mac App Store provisioning profile for
-  `com.chativy.writingjail`.
-- [ ] Verify sandbox behavior for custom secondary-display images and persisted
-  security-scoped access.
-- [ ] Test Accessibility-based Input Blocking in the sandboxed App Store build.
-- [ ] Archive, validate, and upload through Xcode or Transporter.
-- [ ] Complete age rating, pricing, availability, and export-compliance forms.
+- [ ] In App Store Connect, open **App Privacy** and answer **No** to data
+  collection. This questionnaire is not available through the public API.
+- [ ] Confirm the Paid Applications Agreement, tax, and banking information are
+  active for the organization.
+- [ ] Install the signed build on a Mac, grant Accessibility access, and verify
+  Cmd-Tab and Mission Control remain blocked during a focus session.
+- [ ] Review the final version and click **Submit for Review**.
 
 ## Review Risk
 

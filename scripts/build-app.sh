@@ -25,6 +25,7 @@ bin_dir=$(swift_build build -c release -debug-info-format none --show-bin-path)
 mkdir -p "$app_dir/Contents/MacOS" "$app_dir/Contents/Resources"
 install -m 755 "$bin_dir/WritingJail" "$app_dir/Contents/MacOS/WritingJail"
 install -m 644 "$repo_dir/Resources/Info.plist" "$app_dir/Contents/Info.plist"
+install -m 644 "$repo_dir/Resources/PrivacyInfo.xcprivacy" "$app_dir/Contents/Resources/PrivacyInfo.xcprivacy"
 rm -f "$app_dir/Contents/Resources/AppIcon.icns"
 install -m 644 "$repo_dir/assets/AppIcon.icns" "$app_dir/Contents/Resources/WritingJailIcon.icns"
 touch "$app_dir"
