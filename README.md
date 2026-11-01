@@ -44,3 +44,7 @@ The selected Markdown file is saved directly. A recovery draft is also kept at
 
 macOS controls such as the power button, forced restart, and login screen
 cannot be blocked by a regular app.
+
+## License
+
+Writing Jail is licensed under the Apache License 2.0. See [LICENSE](LICENSE).
