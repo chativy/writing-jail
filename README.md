@@ -11,6 +11,19 @@ fully as macOS allows.
 open "dist/Writing Jail.app"
 ```
 
+## Release Development
+
+Generate the Xcode project and open the Release-configured scheme:
+
+```sh
+xcodegen generate
+open WritingJail.xcodeproj
+```
+
+The submission bundle uses `com.chativy.writingjail`, App Sandbox, user-selected
+file access, and the team `Y5E45NE7R9`. Release metadata, screenshots, privacy
+answers, and remaining release steps are under [Release](Release).
+
 To block system shortcuts such as Cmd-Tab and Mission Control, grant
 Accessibility permission from **System Settings > Privacy & Security >
 Accessibility**, then restart the app.
