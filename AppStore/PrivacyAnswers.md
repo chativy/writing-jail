@@ -18,3 +18,7 @@ Accessibility permission is optional and used only to block shortcuts during
 an active focus session. Keyboard input is intercepted in memory and is not
 recorded, persisted, or transmitted. This behavior is disclosed in
 `PRIVACY.md` and in the App Review notes.
+
+On macOS 27 and later, the app guides the user to add WritingJail.app manually
+to Device Control and Data Access because macOS does not allow automatic
+Accessibility registration.

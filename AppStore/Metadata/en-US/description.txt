@@ -1,5 +1,7 @@
 Writing Jail is a focused Markdown editor for macOS, designed for the moments when the next sentence needs your full attention.
 
+For people who love to write, or simply have to write, Writing Jail removes every distraction and creates a place to focus entirely on your words.
+
 Choose an existing Markdown file or create a new one, start a timed writing session, and keep working in a clean full-screen editor. During a focus session, Writing Jail blocks app switching as fully as macOS allows, including the Dock, menu bar, Cmd-Tab, and supported system shortcuts.
 
 WRITE IN MARKDOWN

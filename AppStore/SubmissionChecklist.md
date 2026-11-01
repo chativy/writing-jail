@@ -15,8 +15,8 @@
 - [x] US$10 one-time price
 - [x] Availability in all 175 App Store territories
 - [x] Mac App Store distribution certificate and provisioning profile
-- [x] Universal archive validated and uploaded (build 10)
-- [x] Build 10 attached to version 1.0
+- [x] Universal archive validated and uploaded (build 11)
+- [x] Build 11 attached to version 1.0
 - [x] App privacy questionnaire answers documented
 
 ## Manual Completion
@@ -26,7 +26,8 @@
 - [ ] Confirm the Paid Applications Agreement, tax, and banking information are
   active for the organization.
 - [ ] Install the signed build on a Mac, grant Accessibility access, and verify
-  Cmd-Tab and Mission Control remain blocked during a focus session.
+  Cmd-Tab and Mission Control remain blocked during a focus session. On macOS
+  27 and later, macOS requires adding the app manually with `+`.
 - [ ] Review the final version and click **Submit for Review**.
 
 ## Review Risk

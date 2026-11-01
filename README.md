@@ -28,6 +28,9 @@ To block system shortcuts such as Cmd-Tab and Mission Control, grant
 Accessibility permission from **System Settings > Privacy & Security >
 Accessibility**, then restart the app.
 
+On macOS 27 and later, macOS requires you to add Writing Jail manually: select
+**Device Control and Data Access**, click **+**, and choose the app bundle.
+
 The permission dialog is not shown automatically. Use **Configure Input
 Blocking** when you want to request it. Without permission, only the in-app
 kiosk lock is applied.

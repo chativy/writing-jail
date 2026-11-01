@@ -988,7 +988,29 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
     }
 
     @objc private func configurePermission(_ sender: Any?) {
+        if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27 {
+            presentManualAccessibilityInstructions()
+            return
+        }
         FocusInputBlocker.requestAccessibilityPermission()
+        FocusInputBlocker.openAccessibilitySettings()
+    }
+
+    private func presentManualAccessibilityInstructions() {
+        let appPath = Bundle.main.bundleURL.path
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(appPath, forType: .string)
+
+        let alert = NSAlert()
+        alert.messageText = "Enable Input Blocking"
+        alert.informativeText =
+            "macOS 27 requires Accessibility access to be added manually. In Device Control and Data Access, click + and choose WritingJail.app. The app path has been copied to the clipboard."
+        alert.addButton(withTitle: "Open Settings")
+        alert.addButton(withTitle: "Cancel")
+        guard alert.runModal() == .alertFirstButtonReturn else {
+            return
+        }
         FocusInputBlocker.openAccessibilitySettings()
     }
 
