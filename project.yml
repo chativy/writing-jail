@@ -44,6 +44,8 @@ targets:
         CURRENT_PROJECT_VERSION: "9"
         INFOPLIST_FILE: AppStore/Info.plist
         CODE_SIGN_ENTITLEMENTS: Resources/WritingJail.entitlements
+        ENABLE_APP_SANDBOX: YES
+        ENABLE_USER_SELECTED_FILES: readwrite
         GENERATE_INFOPLIST_FILE: NO
         ENABLE_HARDENED_RUNTIME: YES
         COMBINE_HIDPI_IMAGES: YES
