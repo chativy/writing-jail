@@ -2,3 +2,7 @@
 dist/
 .DS_Store
 *.xcuserstate
+AppStore/Screenshots/raw/
+build/
+*.xcarchive
+AppStore/Export/

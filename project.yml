@@ -1,0 +1,76 @@
+name: WritingJail
+
+options:
+  bundleIdPrefix: com.chativy
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    DEVELOPMENT_TEAM: Y5E45NE7R9
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  FocusWriterCore:
+    type: framework
+    platform: macOS
+    sources:
+      - path: src/FocusWriterCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.chativy.writingjail.core
+        PRODUCT_NAME: FocusWriterCore
+        GENERATE_INFOPLIST_FILE: YES
+        SKIP_INSTALL: YES
+
+  WritingJail:
+    type: application
+    platform: macOS
+    sources:
+      - path: src/FocusWriter
+      - path: assets/AppIcon.icns
+        buildPhase: resources
+    dependencies:
+      - target: FocusWriterCore
+        embed: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.chativy.writingjail
+        PRODUCT_NAME: WritingJail
+        MARKETING_VERSION: "1.8"
+        CURRENT_PROJECT_VERSION: "9"
+        INFOPLIST_FILE: AppStore/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Resources/WritingJail.entitlements
+        GENERATE_INFOPLIST_FILE: NO
+        ENABLE_HARDENED_RUNTIME: YES
+        COMBINE_HIDPI_IMAGES: YES
+
+  WritingJailTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: tests/FocusWriterCoreTests
+    dependencies:
+      - target: FocusWriterCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.chativy.writingjail.tests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  WritingJail:
+    build:
+      targets:
+        WritingJail: all
+        WritingJailTests:
+          - test
+    test:
+      targets:
+        - WritingJailTests
+    run:
+      config: Debug
+    archive:
+      config: Release

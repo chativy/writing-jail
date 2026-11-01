@@ -15,6 +15,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
         updateSecondaryDisplayMenuAvailability()
 
+        if let startupFile = startupFileArgument(),
+            controller.openInitialFile(at: startupFile) {
+            controller.showWindow(nil)
+        } else {
+            DispatchQueue.main.async {
+                guard controller.presentInitialFileChooser() else {
+                    NSApp.terminate(nil)
+                    return
+                }
+                controller.showWindow(nil)
+            }
+        }
+
         screenObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,
             object: nil,
@@ -23,14 +36,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Task { @MainActor in
                 self?.updateSecondaryDisplayMenuAvailability()
             }
-        }
-
-        DispatchQueue.main.async {
-            guard controller.presentInitialFileChooser() else {
-                NSApp.terminate(nil)
-                return
-            }
-            controller.showWindow(nil)
         }
 
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) {
@@ -101,6 +106,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func updateSecondaryDisplayMenuAvailability() {
         secondaryDisplayMenuItem?.isHidden = NSScreen.screens.count < 2
+    }
+
+    private func startupFileArgument() -> URL? {
+        for argument in CommandLine.arguments.dropFirst() {
+            let url = URL(fileURLWithPath: argument)
+            guard
+                ["md", "markdown"].contains(url.pathExtension.lowercased()),
+                FileManager.default.fileExists(atPath: url.path)
+            else {
+                continue
+            }
+            return url
+        }
+        return nil
     }
 
     private func makeMainMenu() -> NSMenu {

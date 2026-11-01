@@ -1,0 +1,1 @@
+Turn a Markdown draft into a timed writing session. Choose a file, start the clock, and give the next sentence your full attention.

@@ -1,0 +1,12 @@
+Writing Jail is a local Markdown editor with an optional focus-lock feature.
+
+The app does not require an account and includes no analytics, telemetry, advertising, cloud synchronization, or network-based data collection.
+
+When the user chooses Configure Input Blocking, the app may request macOS Accessibility permission. Accessibility is used only to intercept shortcuts that would leave an active focus session, such as Cmd-Tab and Mission Control. Writing Jail does not record, log, store, or transmit keyboard input.
+
+If Accessibility permission is not granted, the app continues to work in Limited Mode using an in-app full-screen kiosk presentation.
+
+Hold Control-Option-Escape for five seconds to end a focus session early. The focus lock cannot prevent forced restart or physical power changes.
+
+The privacy policy is available at:
+https://github.com/chativy/writing-jail/blob/main/PRIVACY.md

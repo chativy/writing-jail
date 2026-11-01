@@ -280,6 +280,15 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         window?.makeFirstResponder(surface.textView)
     }
 
+    @discardableResult
+    func openInitialFile(at fileURL: URL) -> Bool {
+        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+            return false
+        }
+        applyInitialFileSelection(fileURL)
+        return true
+    }
+
     func refreshPermissionStatus() {
         guard !isFocusActive else {
             return
@@ -486,7 +495,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             } else {
                 state = "new file"
             }
-            destinationLabel.stringValue = "Save file (\(state)): \(targetURL.path)"
+            destinationLabel.stringValue =
+                "Save file (\(state)): \(targetURL.lastPathComponent)"
             destinationLabel.toolTip = targetURL.path
         } else {
             destinationLabel.stringValue =

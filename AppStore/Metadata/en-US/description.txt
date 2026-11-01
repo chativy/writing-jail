@@ -1,0 +1,27 @@
+Writing Jail is a focused Markdown editor for macOS, designed for the moments when the next sentence needs your full attention.
+
+Choose an existing Markdown file or create a new one, start a timed writing session, and keep working in a clean full-screen editor. During a focus session, Writing Jail blocks app switching as fully as macOS allows, including the Dock, menu bar, Cmd-Tab, and supported system shortcuts.
+
+WRITE IN MARKDOWN
+
+Open and edit local .md files directly. Automatic saves run every 30 seconds, with additional saves when a session starts or ends.
+
+CHOOSE YOUR FOCUS
+
+Select a duration from 5 minutes to 24 hours. Sessions of 30 minutes or longer require confirmation.
+
+DARK AND IVORY
+
+Switch between a low-light dark workspace and a warm ivory page. Text size can be adjusted with Cmd-Plus and Cmd-Minus.
+
+MULTIPLE DISPLAYS
+
+Mirror the editor across displays, show the system wallpaper, choose a custom image, or fill every secondary display with a solid color.
+
+YOUR FILES STAY LOCAL
+
+Writing Jail does not collect, transmit, sell, or share personal information. It accesses only files and folders you explicitly select. No account, analytics, advertising, or cloud synchronization is required.
+
+Input Blocking is optional. With Accessibility permission, Writing Jail can more reliably block focus-breaking shortcuts. Without that permission, Limited Mode still provides an in-app kiosk-style workspace. Writing Jail never records or transmits the keys you type.
+
+macOS system controls such as forced restart and physical power remain outside the control of a regular app.

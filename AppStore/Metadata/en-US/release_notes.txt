@@ -1,0 +1,10 @@
+Initial App Store release.
+
+- Open, create, and edit local Markdown files
+- Timed full-screen focus sessions
+- Optional Accessibility-based Input Blocking
+- Four or more lines of cursor space below the active line
+- Dark and Ivory themes
+- Local automatic saving every 30 seconds
+- Configurable secondary displays
+- English interface
