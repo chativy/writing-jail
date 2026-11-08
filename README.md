@@ -40,7 +40,9 @@ kiosk lock is applied.
 - File: a full file chooser opens before the editor. Use **Create New File…**
   from the options area, which is expanded by default, to name a new document.
   **Edit > New File…** and **Edit > Open File…** remain available while the
-  editor is open.
+  editor is open. Use **Edit > Default File Name Format…** to customize new
+  names with `{date}`, `{time}`, `{datetime}`, `{yyyy}`, `{MM}`, `{dd}`,
+  `{HH}`, `{mm}`, and `{ss}` tokens. The `.md` extension is added automatically.
 - Duration: click **Start Focus** and choose minutes from the dropdown. The
   default is `5min`. Options use 5-minute intervals through `1hour`,
   10-minute intervals above one hour, and whole-hour intervals from

@@ -101,6 +101,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         mainWindowController?.createNewFileFromMenu(sender)
     }
 
+    @objc private func configureDefaultFileNameFormat(_ sender: Any?) {
+        mainWindowController?.configureDefaultFileNameFormat(sender)
+    }
+
     @objc private func showSecondaryDisplay(_ sender: Any?) {
         mainWindowController?.showSecondaryDisplayDialog()
     }
@@ -191,6 +195,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             keyEquivalent: "n"
         )
         newFile.target = self
+        editMenu.addItem(.separator())
+        let fileNameFormat = editMenu.addItem(
+            withTitle: "Default File Name Format…",
+            action: #selector(configureDefaultFileNameFormat(_:)),
+            keyEquivalent: ""
+        )
+        fileNameFormat.target = self
 
         let viewItem = NSMenuItem()
         mainMenu.addItem(viewItem)

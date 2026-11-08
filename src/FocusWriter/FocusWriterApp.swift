@@ -27,7 +27,8 @@ enum WritingJailApp {
             "secondaryDisplayImagePath",
             "secondaryDisplayColor",
             "lastMarkdownFolder",
-            "editorTheme"
+            "editorTheme",
+            "defaultFileNameFormat"
         ]
         for key in keys where UserDefaults.standard.object(forKey: key) == nil {
             if let value = legacyValues[key] {

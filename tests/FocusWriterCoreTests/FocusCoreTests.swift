@@ -80,6 +80,57 @@ final class FocusCoreTests: XCTestCase {
         )
     }
 
+    func testDefaultFileNameFormats() {
+        let date = DateComponents(
+            calendar: Calendar(identifier: .gregorian),
+            timeZone: TimeZone(secondsFromGMT: 0),
+            year: 2026,
+            month: 11,
+            day: 8,
+            hour: 9,
+            minute: 7,
+            second: 5
+        ).date!
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+
+        XCTAssertEqual(
+            DefaultFileNameFormat.fileName(
+                format: "focus-{date}",
+                date: date,
+                timeZone: timeZone
+            ),
+            "focus-2026-11-08.md"
+        )
+        XCTAssertEqual(
+            DefaultFileNameFormat.fileName(
+                format: "{yyyy}-{MM}-{dd}_{HH}-{mm}-{ss}",
+                date: date,
+                timeZone: timeZone
+            ),
+            "2026-11-08_09-07-05.md"
+        )
+        XCTAssertEqual(
+            DefaultFileNameFormat.fileName(
+                format: "entry-{datetime}.txt",
+                date: date,
+                timeZone: timeZone
+            ),
+            "entry-2026-11-08-09-07-05.md"
+        )
+        XCTAssertNil(
+            DefaultFileNameFormat.fileName(
+                format: "   ",
+                date: date
+            )
+        )
+        XCTAssertNil(
+            DefaultFileNameFormat.fileName(
+                format: "../{date}",
+                date: date
+            )
+        )
+    }
+
     func testEmergencyExitChord() {
         let chord = CGEventFlags([.maskControl, .maskAlternate])
         XCTAssertTrue(
