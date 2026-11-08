@@ -248,8 +248,73 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             return
         }
         _ = presentNewFileFromStartup(
-            defaultName: selectedFileName
+            defaultName: Self.defaultFileName()
         )
+    }
+
+    @objc func configureDefaultFileNameFormat(_ sender: Any?) {
+        guard !isFocusActive else {
+            return
+        }
+
+        let currentFormat = UserDefaults.standard.string(
+            forKey: Self.defaultFileNameFormatKey
+        ) ?? DefaultFileNameFormat.defaultFormat
+        let formatField = NSTextField(
+            frame: NSRect(x: 0, y: 0, width: 430, height: 26)
+        )
+        formatField.stringValue = currentFormat
+        formatField.placeholderString = DefaultFileNameFormat.defaultFormat
+
+        let example = DefaultFileNameFormat.fileName(
+            format: currentFormat,
+            date: Date()
+        ) ?? "focus.md"
+        let hint = NSTextField(
+            wrappingLabelWithString:
+                "Tokens: {date}, {time}, {datetime}, {yyyy}, {MM}, {dd}, {HH}, {mm}, {ss}. The .md extension is added automatically. Example: \(example)"
+        )
+        hint.textColor = .secondaryLabelColor
+
+        let accessory = NSView(
+            frame: NSRect(x: 0, y: 0, width: 520, height: 92)
+        )
+        formatField.frame = NSRect(x: 0, y: 56, width: 500, height: 26)
+        hint.frame = NSRect(x: 0, y: 0, width: 500, height: 48)
+        accessory.addSubview(formatField)
+        accessory.addSubview(hint)
+
+        let alert = NSAlert()
+        alert.messageText = "Default File Name Format"
+        alert.informativeText =
+            "Choose the file name pattern used for new Markdown documents."
+        alert.accessoryView = accessory
+        alert.addButton(withTitle: "Save")
+        alert.addButton(withTitle: "Cancel")
+        guard alert.runModal() == .alertFirstButtonReturn else {
+            return
+        }
+
+        let format = formatField.stringValue.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+        guard let preview = DefaultFileNameFormat.fileName(
+            format: format,
+            date: Date()
+        ) else {
+            showFileError(
+                title: "Invalid File Name Format",
+                message:
+                    "Enter a non-empty format without /. The .md extension is added automatically."
+            )
+            return
+        }
+
+        UserDefaults.standard.set(
+            format,
+            forKey: Self.defaultFileNameFormatKey
+        )
+        stateLabel.stringValue = "Default file name: \(preview)"
     }
 
     private func applyInitialFileSelection(_ chosenURL: URL) {
@@ -837,11 +902,19 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private static func defaultFileName() -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd"
-        return "focus-\(formatter.string(from: Date())).md"
+        let format = UserDefaults.standard.string(
+            forKey: defaultFileNameFormatKey
+        ) ?? DefaultFileNameFormat.defaultFormat
+        return DefaultFileNameFormat.fileName(
+            format: format,
+            date: Date()
+        ) ?? DefaultFileNameFormat.fileName(
+            format: DefaultFileNameFormat.defaultFormat,
+            date: Date()
+        ) ?? "focus.md"
     }
+
+    private static let defaultFileNameFormatKey = "defaultFileNameFormat"
 
     private static func clockString() -> String {
         let formatter = DateFormatter()

@@ -19,6 +19,7 @@
 		78C9A2A66A0CD309E0440708 /* FocusWriterCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 18E29EE837D11178939F07C6 /* FocusWriterCore.framework */; };
 		868A0F97EA9E28E3ED1C5CDA /* SecondaryDisplayMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21825AE7685C226063DAED4F /* SecondaryDisplayMode.swift */; };
 		908AF3BC3D293B98209BBE20 /* FocusOverlayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75116388530A39116C2BC278 /* FocusOverlayController.swift */; };
+		B0BCB10C6FDF8B2CFB33D44A /* DefaultFileNameFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF6FCE4736799234CE18FF6 /* DefaultFileNameFormat.swift */; };
 		B7739D0D52C6106C6D3E84A4 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = B7924AB209BE1908A75AA2D2 /* AppIcon.icns */; };
 		C34EF4B409D57A259FB16525 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F7E17B90BA9D7DF30B4CBCB8 /* PrivacyInfo.xcprivacy */; };
 		CAA41904AEC204CD47B739C6 /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8D84B28AD995D2746E32652 /* MainWindowController.swift */; };
@@ -79,6 +80,7 @@
 		21746E89B9A30BBBF3CA4816 /* FocusWriterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusWriterApp.swift; sourceTree = "<group>"; };
 		21825AE7685C226063DAED4F /* SecondaryDisplayMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondaryDisplayMode.swift; sourceTree = "<group>"; };
 		23308AA44C1DE4141C550849 /* EditorTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorTheme.swift; sourceTree = "<group>"; };
+		4EF6FCE4736799234CE18FF6 /* DefaultFileNameFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultFileNameFormat.swift; sourceTree = "<group>"; };
 		4FD570EA9D9E405A55AADC85 /* MarkdownFileName.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownFileName.swift; sourceTree = "<group>"; };
 		75116388530A39116C2BC278 /* FocusOverlayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusOverlayController.swift; sourceTree = "<group>"; };
 		966405A07620146A529776B0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -179,6 +181,7 @@
 		A5522B915B1250EB14CA4BF7 /* FocusWriterCore */ = {
 			isa = PBXGroup;
 			children = (
+				4EF6FCE4736799234CE18FF6 /* DefaultFileNameFormat.swift */,
 				1F1A4048DB303D50D794298C /* FocusDuration.swift */,
 				FADF1616F004E86EBEF5F811 /* FocusKeyPolicy.swift */,
 				4FD570EA9D9E405A55AADC85 /* MarkdownFileName.swift */,
@@ -341,6 +344,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B0BCB10C6FDF8B2CFB33D44A /* DefaultFileNameFormat.swift in Sources */,
 				EFBC99EFCB5CACE25696B365 /* FocusDuration.swift in Sources */,
 				E04FAB345A61D21EB4EB93B3 /* FocusKeyPolicy.swift in Sources */,
 				532C74B41544A0BF335018AB /* MarkdownFileName.swift in Sources */,
@@ -458,7 +462,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Resources/WritingJail.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 13;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
@@ -539,7 +543,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Resources/WritingJail.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 13;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
