@@ -1,25 +1,5 @@
 import AppKit
 
-private final class FocusEditorWindow: NSWindow {
-    override var canBecomeKey: Bool {
-        true
-    }
-
-    override var canBecomeMain: Bool {
-        true
-    }
-}
-
-private final class AmbientOverlayWindow: NSWindow {
-    override var canBecomeKey: Bool {
-        false
-    }
-
-    override var canBecomeMain: Bool {
-        false
-    }
-}
-
 @MainActor
 final class FocusSessionOverlayController {
     private let editorTextModel: EditorTextModel
@@ -133,17 +113,17 @@ final class FocusSessionOverlayController {
             return
         }
 
-        let remaining = max(0, sessionDeadline.timeIntervalSinceNow)
-        let timeText = Self.formattedCountdown(remaining)
+        let remainingTime = max(0, sessionDeadline.timeIntervalSinceNow)
+        let countdownText = Self.formattedCountdown(remainingTime)
         let footerMessage = makeFooterMessage()
         for label in countdownTextLabels {
-            label.stringValue = timeText
+            label.stringValue = countdownText
         }
         for label in footerTextLabels {
             label.stringValue = footerMessage
         }
 
-        if remaining <= 0 {
+        if remainingTime <= 0 {
             isPresented = false
             countdownTimer?.invalidate()
             countdownTimer = nil
@@ -181,7 +161,7 @@ final class FocusSessionOverlayController {
                 || displayID(for: screen) == editorDisplayID
             let window = isEditorScreen
                 ? makeEditorWindow(for: screen)
-                : makeAmbientWindow(for: screen)
+                : makeSecondaryDisplayWindow(for: screen)
             overlayWindows.append(window)
             window.orderFrontRegardless()
 
@@ -235,7 +215,7 @@ final class FocusSessionOverlayController {
         themeToggleButton.controlSize = .small
         themeToggleButton.contentTintColor = palette.accent
 
-        let header = NSStackView(
+        let headerStack = NSStackView(
             views: [
                 title,
                 divider,
@@ -245,48 +225,48 @@ final class FocusSessionOverlayController {
                 themeToggleButton
             ]
         )
-        header.orientation = .horizontal
-        header.alignment = .centerY
-        header.spacing = 12
+        headerStack.orientation = .horizontal
+        headerStack.alignment = .centerY
+        headerStack.spacing = 12
 
         let editorSurface = EditorSurfaceBuilder.make(
             editorTextModel: editorTextModel,
             palette: palette
         )
-        let footer = makeLabel(
+        let footerLabel = makeLabel(
             makeFooterMessage(),
             font: .systemFont(ofSize: 12),
             color: palette.secondaryText
         )
 
-        for view in [header, editorSurface.scrollView, footer] {
+        for view in [headerStack, editorSurface.scrollView, footerLabel] {
             view.translatesAutoresizingMaskIntoConstraints = false
             root.addSubview(view)
         }
 
         NSLayoutConstraint.activate([
-            header.topAnchor.constraint(equalTo: root.topAnchor, constant: 20),
-            header.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 30),
-            header.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -30),
+            headerStack.topAnchor.constraint(equalTo: root.topAnchor, constant: 20),
+            headerStack.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 30),
+            headerStack.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -30),
 
-            editorSurface.scrollView.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 14),
+            editorSurface.scrollView.topAnchor.constraint(equalTo: headerStack.bottomAnchor, constant: 14),
             editorSurface.scrollView.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 24),
             editorSurface.scrollView.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -24),
-            editorSurface.scrollView.bottomAnchor.constraint(equalTo: footer.topAnchor, constant: -12),
+            editorSurface.scrollView.bottomAnchor.constraint(equalTo: footerLabel.topAnchor, constant: -12),
 
-            footer.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 30),
-            footer.trailingAnchor.constraint(lessThanOrEqualTo: root.trailingAnchor, constant: -30),
-            footer.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -18)
+            footerLabel.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 30),
+            footerLabel.trailingAnchor.constraint(lessThanOrEqualTo: root.trailingAnchor, constant: -30),
+            footerLabel.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -18)
         ])
 
         countdownTextLabels.append(countdown)
-        footerTextLabels.append(footer)
+        footerTextLabels.append(footerLabel)
         window.initialFirstResponder = editorSurface.textView
         window.makeFirstResponder(editorSurface.textView)
         return window
     }
 
-    private func makeAmbientWindow(for screen: NSScreen) -> NSWindow {
+    private func makeSecondaryDisplayWindow(for screen: NSScreen) -> NSWindow {
         let window = makeOverlayWindow(
             for: screen,
             canBecomeKey: false,
@@ -295,25 +275,25 @@ final class FocusSessionOverlayController {
         let root = makeRootView(for: screen, palette: .dark)
         window.contentView = root
 
-        let image: NSImage?
+        let backgroundImage: NSImage?
         switch secondaryDisplayMode {
         case .systemWallpaper:
-            image = NSWorkspace.shared
+            backgroundImage = NSWorkspace.shared
                 .desktopImageURL(for: screen)
                 .flatMap(NSImage.init(contentsOf:))
         case .customImage:
-            image = secondaryImageURL
+            backgroundImage = secondaryImageURL
                 .flatMap(NSImage.init(contentsOf:))
                 ?? NSWorkspace.shared
                     .desktopImageURL(for: screen)
                     .flatMap(NSImage.init(contentsOf:))
         case .solidColor, .mirrorEditor:
-            image = nil
+            backgroundImage = nil
         }
 
-        if let image {
+        if let backgroundImage {
             let imageView = NSImageView()
-            imageView.image = image
+            imageView.image = backgroundImage
             imageView.imageAlignment = .alignCenter
             imageView.imageScaling = .scaleProportionallyUpOrDown
             imageView.translatesAutoresizingMaskIntoConstraints = false
@@ -346,7 +326,7 @@ final class FocusSessionOverlayController {
                 screen: screen
             )
         } else {
-            window = AmbientOverlayWindow(
+            window = SecondaryDisplayOverlayWindow(
                 contentRect: NSRect(origin: .zero, size: screen.frame.size),
                 styleMask: [.borderless],
                 backing: .buffered,

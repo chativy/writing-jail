@@ -64,7 +64,7 @@ final class WritingJailAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         mainWindowController?.saveCurrentState()
-        mainWindowController?.stopScopedResourceAccess()
+        mainWindowController?.releaseSecurityScopedResources()
         if let keyMonitor {
             NSEvent.removeMonitor(keyMonitor)
         }
@@ -101,8 +101,8 @@ final class WritingJailAppDelegate: NSObject, NSApplicationDelegate {
         mainWindowController?.createNewDocumentFromMenu(sender)
     }
 
-    @objc private func configureDefaultFileNameFormat(_ sender: Any?) {
-        mainWindowController?.configureDefaultFileNameFormat(sender)
+    @objc private func configureDefaultFilenameTemplate(_ sender: Any?) {
+        mainWindowController?.configureDefaultFilenameTemplate(sender)
     }
 
     @objc private func showSecondaryDisplay(_ sender: Any?) {
@@ -183,25 +183,25 @@ final class WritingJailAppDelegate: NSObject, NSApplicationDelegate {
             keyEquivalent: "a"
         )
         editMenu.addItem(.separator())
-        let openFile = editMenu.addItem(
+        let openDocumentMenuItem = editMenu.addItem(
             withTitle: "Open File…",
             action: #selector(openDocumentFromMenu(_:)),
             keyEquivalent: "o"
         )
-        openFile.target = self
-        let newFile = editMenu.addItem(
+        openDocumentMenuItem.target = self
+        let newDocumentMenuItem = editMenu.addItem(
             withTitle: "New File…",
             action: #selector(createNewDocumentFromMenu(_:)),
             keyEquivalent: "n"
         )
-        newFile.target = self
+        newDocumentMenuItem.target = self
         editMenu.addItem(.separator())
-        let fileNameFormat = editMenu.addItem(
+        let filenameFormatMenuItem = editMenu.addItem(
             withTitle: "Default File Name Format…",
-            action: #selector(configureDefaultFileNameFormat(_:)),
+            action: #selector(configureDefaultFilenameTemplate(_:)),
             keyEquivalent: ""
         )
-        fileNameFormat.target = self
+        filenameFormatMenuItem.target = self
 
         let viewItem = NSMenuItem()
         mainMenu.addItem(viewItem)
@@ -218,13 +218,13 @@ final class WritingJailAppDelegate: NSObject, NSApplicationDelegate {
             keyEquivalent: "-"
         ).target = self
         viewMenu.addItem(.separator())
-        let secondaryDisplay = viewMenu.addItem(
+        let secondaryDisplayMenuItem = viewMenu.addItem(
             withTitle: "Secondary Display…",
             action: #selector(showSecondaryDisplay(_:)),
             keyEquivalent: ""
         )
-        secondaryDisplay.target = self
-        secondaryDisplayMenuItem = secondaryDisplay
+        secondaryDisplayMenuItem.target = self
+        self.secondaryDisplayMenuItem = secondaryDisplayMenuItem
 
         return mainMenu
     }

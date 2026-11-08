@@ -11,7 +11,7 @@ final class FocusKeyboardBlocker {
     private var keyboardEventTapSource: CFRunLoopSource?
     private var emergencyExitWorkItem: DispatchWorkItem?
 
-    var isBlocking: Bool {
+    var isEventTapActive: Bool {
         keyboardEventTap != nil
     }
 
@@ -21,8 +21,8 @@ final class FocusKeyboardBlocker {
 
     static func requestAccessibilityAccess() {
         let promptKey = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
-        let options = [promptKey: true] as CFDictionary
-        AXIsProcessTrustedWithOptions(options)
+        let promptOptions = [promptKey: true] as CFDictionary
+        AXIsProcessTrustedWithOptions(promptOptions)
     }
 
     static func openAccessibilityPrivacySettings() {
@@ -41,29 +41,33 @@ final class FocusKeyboardBlocker {
             return false
         }
 
-        let mask =
+        let blockedEventMask =
             (CGEventMask(1) << CGEventType.keyDown.rawValue)
             | (CGEventMask(1) << CGEventType.keyUp.rawValue)
             | (CGEventMask(1) << CGEventType.flagsChanged.rawValue)
             | (CGEventMask(1) << FocusKeyboardPolicy.systemDefinedCGEventType.rawValue)
 
-        guard let tap = CGEvent.tapCreate(
+        guard let eventTap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
             place: .headInsertEventTap,
             options: .defaultTap,
-            eventsOfInterest: mask,
+            eventsOfInterest: blockedEventMask,
             callback: Self.keyboardEventTapCallback,
             userInfo: Unmanaged.passUnretained(self).toOpaque()
         ) else {
             return false
         }
 
-        keyboardEventTap = tap
-        keyboardEventTapSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
+        keyboardEventTap = eventTap
+        keyboardEventTapSource = CFMachPortCreateRunLoopSource(
+            kCFAllocatorDefault,
+            eventTap,
+            0
+        )
         if let keyboardEventTapSource {
             CFRunLoopAddSource(CFRunLoopGetMain(), keyboardEventTapSource, .commonModes)
         }
-        CGEvent.tapEnable(tap: tap, enable: true)
+        CGEvent.tapEnable(tap: eventTap, enable: true)
         return true
     }
 
@@ -87,17 +91,17 @@ final class FocusKeyboardBlocker {
             return
         }
 
-        let item = DispatchWorkItem { [weak self] in
+        let emergencyExitTask = DispatchWorkItem { [weak self] in
             guard let self, self.emergencyExitWorkItem?.isCancelled == false else {
                 return
             }
             self.emergencyExitWorkItem = nil
             self.onEmergencyExit?()
         }
-        emergencyExitWorkItem = item
+        emergencyExitWorkItem = emergencyExitTask
         DispatchQueue.main.asyncAfter(
             deadline: .now() + FocusKeyboardPolicyAdapter.emergencyHoldSeconds,
-            execute: item
+            execute: emergencyExitTask
         )
     }
 
@@ -122,13 +126,13 @@ final class FocusKeyboardBlocker {
             return Unmanaged.passUnretained(event)
         }
 
-        let blocker = Unmanaged<FocusKeyboardBlocker>
+        let keyboardBlocker = Unmanaged<FocusKeyboardBlocker>
             .fromOpaque(userInfo)
             .takeUnretainedValue()
 
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
             DispatchQueue.main.async {
-                blocker.reenableEventTap()
+                keyboardBlocker.reenableEventTap()
             }
             return Unmanaged.passUnretained(event)
         }
@@ -144,19 +148,19 @@ final class FocusKeyboardBlocker {
             flags: flags
         ) {
             DispatchQueue.main.async {
-                blocker.scheduleEmergencyExit()
+                keyboardBlocker.scheduleEmergencyExit()
             }
             return nil
         }
 
         if type == .keyUp && keyCode == 53 {
             DispatchQueue.main.async {
-                blocker.cancelEmergencyExit()
+                keyboardBlocker.cancelEmergencyExit()
             }
         } else if type == .flagsChanged
             && !(flags.contains(.maskControl) && flags.contains(.maskAlternate)) {
             DispatchQueue.main.async {
-                blocker.cancelEmergencyExit()
+                keyboardBlocker.cancelEmergencyExit()
             }
         }
 

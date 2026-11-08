@@ -2,18 +2,6 @@ import AppKit
 import WritingJailCore
 import UniformTypeIdentifiers
 
-private final class ClosureActionTarget: NSObject {
-    private let action: () -> Void
-
-    init(action: @escaping () -> Void) {
-        self.action = action
-    }
-
-    @objc func invoke(_ sender: Any?) {
-        action()
-    }
-}
-
 @MainActor
 final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
     private enum EndReason {
@@ -149,7 +137,7 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
         panel.canCreateDirectories = true
         panel.directoryURL = documentDirectoryURL
 
-        let suggestedName = MarkdownFileName.normalizedFilename(
+        let suggestedName = MarkdownFilename.normalizedFilename(
             documentFileName,
             fallback: Self.suggestedFileName()
         ) ?? Self.suggestedFileName()
@@ -197,12 +185,12 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
         }
         documentFileAccess.retainAccess(to: chosenURL)
 
-        let isDirectoryURL = (try? chosenURL.resourceValues(
+        let chosenPathIsDirectory = (try? chosenURL.resourceValues(
             forKeys: [.isDirectoryKey]
         ).isDirectory) ?? false
         let documentURLToOpen: URL
-        if isDirectoryURL {
-            let fileName = MarkdownFileName.normalizedFilename(
+        if chosenPathIsDirectory {
+            let fileName = MarkdownFilename.normalizedFilename(
                 filenameField.stringValue,
                 fallback: suggestedName
             ) ?? suggestedName
@@ -224,7 +212,7 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
         ]
         panel.canCreateDirectories = true
         panel.directoryURL = documentDirectoryURL
-        panel.nameFieldStringValue = MarkdownFileName.normalizedFilename(
+        panel.nameFieldStringValue = MarkdownFilename.normalizedFilename(
             suggestedName,
             fallback: Self.suggestedFileName()
         ) ?? Self.suggestedFileName()
@@ -249,22 +237,22 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
         )
     }
 
-    @objc func configureDefaultFileNameFormat(_ sender: Any?) {
+    @objc func configureDefaultFilenameTemplate(_ sender: Any?) {
         guard !isFocusSessionActive else {
             return
         }
 
-        let storedFormat = UserDefaults.standard.string(
-            forKey: Self.defaultFileNameFormatKey
-        ) ?? DefaultFileNameFormat.defaultTemplate
-        let formatTextField = NSTextField(
+        let storedTemplate = UserDefaults.standard.string(
+            forKey: Self.defaultFilenameTemplateKey
+        ) ?? DefaultFilenameTemplate.defaultTemplate
+        let templateTextField = NSTextField(
             frame: NSRect(x: 0, y: 0, width: 430, height: 26)
         )
-        formatTextField.stringValue = storedFormat
-        formatTextField.placeholderString = DefaultFileNameFormat.defaultTemplate
+        templateTextField.stringValue = storedTemplate
+        templateTextField.placeholderString = DefaultFilenameTemplate.defaultTemplate
 
-        let exampleFileName = DefaultFileNameFormat.makeFilename(
-            format: storedFormat,
+        let exampleFileName = DefaultFilenameTemplate.makeFilename(
+            template: storedTemplate,
             date: Date()
         ) ?? "focus.md"
         let instructionsLabel = NSTextField(
@@ -276,9 +264,9 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
         let accessory = NSView(
             frame: NSRect(x: 0, y: 0, width: 520, height: 92)
         )
-        formatTextField.frame = NSRect(x: 0, y: 56, width: 500, height: 26)
+        templateTextField.frame = NSRect(x: 0, y: 56, width: 500, height: 26)
         instructionsLabel.frame = NSRect(x: 0, y: 0, width: 500, height: 48)
-        accessory.addSubview(formatTextField)
+        accessory.addSubview(templateTextField)
         accessory.addSubview(instructionsLabel)
 
         let alert = NSAlert()
@@ -292,11 +280,11 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
             return
         }
 
-        let format = formatTextField.stringValue.trimmingCharacters(
+        let template = templateTextField.stringValue.trimmingCharacters(
             in: .whitespacesAndNewlines
         )
-        guard let preview = DefaultFileNameFormat.makeFilename(
-            format: format,
+        guard let preview = DefaultFilenameTemplate.makeFilename(
+            template: template,
             date: Date()
         ) else {
             presentFileError(
@@ -308,14 +296,14 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
         }
 
         UserDefaults.standard.set(
-            format,
-            forKey: Self.defaultFileNameFormatKey
+            template,
+            forKey: Self.defaultFilenameTemplateKey
         )
         statusLabel.stringValue = "Default file name: \(preview)"
     }
 
     private func loadOrCreateDocument(_ chosenURL: URL) {
-        let fileName = MarkdownFileName.normalizedFilename(
+        let fileName = MarkdownFilename.normalizedFilename(
             chosenURL.lastPathComponent,
             fallback: Self.suggestedFileName()
         ) ?? Self.suggestedFileName()
@@ -404,7 +392,7 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
             return
         }
         contentView.wantsLayer = true
-        contentView.layer?.backgroundColor = EditorPalette.main.background.cgColor
+        contentView.layer?.backgroundColor = EditorPalette.dark.background.cgColor
 
         let titleLabel = NSTextField(labelWithString: "Writing Jail")
         titleLabel.font = .systemFont(ofSize: 22, weight: .bold)
@@ -544,7 +532,7 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
     private var suggestedDocumentURL: URL? {
         guard
             let documentDirectoryURL,
-            let fileName = MarkdownFileName.normalizedFilename(
+            let fileName = MarkdownFilename.normalizedFilename(
                 documentFileName,
                 fallback: Self.suggestedFileName()
             )
@@ -591,16 +579,16 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
         if let suggestedDocumentURL {
             let isCurrentDocument = currentDocumentURL?.standardizedFileURL == suggestedDocumentURL.standardizedFileURL
             let exists = FileManager.default.fileExists(atPath: suggestedDocumentURL.path)
-            let state: String
+            let documentState: String
             if isCurrentDocument {
-                state = "editing"
+                documentState = "editing"
             } else if exists {
-                state = "existing file · loaded on start"
+                documentState = "existing file · loaded on start"
             } else {
-                state = "new file"
+                documentState = "new file"
             }
             documentLocationLabel.stringValue =
-                "Save file (\(state)): \(suggestedDocumentURL.lastPathComponent)"
+                "Save file (\(documentState)): \(suggestedDocumentURL.lastPathComponent)"
             documentLocationLabel.toolTip = suggestedDocumentURL.path
         } else {
             documentLocationLabel.stringValue =
@@ -639,19 +627,19 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
             return
         }
 
-        let modePopup = NSPopUpButton(frame: .zero, pullsDown: false)
+        let displayModePopup = NSPopUpButton(frame: .zero, pullsDown: false)
         for mode in SecondaryDisplayMode.allCases {
-            modePopup.addItem(withTitle: mode.displayName)
+            displayModePopup.addItem(withTitle: mode.displayName)
         }
-        modePopup.selectItem(
+        displayModePopup.selectItem(
             at: SecondaryDisplayMode.allCases.firstIndex(
                 of: secondaryDisplayMode
             ) ?? 1
         )
-        let previousModeIndex = modePopup.indexOfSelectedItem
+        let previousModeIndex = displayModePopup.indexOfSelectedItem
 
-        let colorWell = NSColorWell()
-        colorWell.color = secondaryColor
+        let solidColorWell = NSColorWell()
+        solidColorWell.color = secondaryColor
 
         let modeLabel = NSTextField(labelWithString: "Display content")
         let colorLabel = NSTextField(labelWithString: "Solid color")
@@ -663,7 +651,7 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
         var pendingCustomImageURL = secondaryImageURL
 
         let modeSelectionActionTarget = ClosureActionTarget {
-            let index = modePopup.indexOfSelectedItem
+            let index = displayModePopup.indexOfSelectedItem
             guard SecondaryDisplayMode.allCases.indices.contains(index) else {
                 return
             }
@@ -680,21 +668,21 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
             panel.allowedContentTypes = [.image]
 
             guard panel.runModal() == .OK, let imageURL = panel.url else {
-                modePopup.selectItem(at: previousModeIndex)
+                displayModePopup.selectItem(at: previousModeIndex)
                 return
             }
             pendingCustomImageURL = imageURL
             instructionsLabel.stringValue = "Selected image: \(imageURL.lastPathComponent)"
         }
-        modePopup.target = modeSelectionActionTarget
-        modePopup.action = #selector(ClosureActionTarget.invoke(_:))
+        displayModePopup.target = modeSelectionActionTarget
+        displayModePopup.action = #selector(ClosureActionTarget.invoke(_:))
 
-        let modeRow = NSStackView(views: [modeLabel, modePopup])
+        let modeRow = NSStackView(views: [modeLabel, displayModePopup])
         modeRow.orientation = .horizontal
         modeRow.alignment = .centerY
         modeRow.spacing = 12
 
-        let colorRow = NSStackView(views: [colorLabel, colorWell])
+        let colorRow = NSStackView(views: [colorLabel, solidColorWell])
         colorRow.orientation = .horizontal
         colorRow.alignment = .centerY
         colorRow.spacing = 12
@@ -719,13 +707,13 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
             return
         }
 
-        let index = modePopup.indexOfSelectedItem
+        let index = displayModePopup.indexOfSelectedItem
         guard SecondaryDisplayMode.allCases.indices.contains(index) else {
             return
         }
-        let selectedMode = SecondaryDisplayMode.allCases[index]
+        let selectedDisplayMode = SecondaryDisplayMode.allCases[index]
 
-        if selectedMode == .customImage {
+        if selectedDisplayMode == .customImage {
             guard let imageURL = pendingCustomImageURL else {
                 statusLabel.stringValue =
                     "Select an image before applying Custom Image."
@@ -741,8 +729,8 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
                 imageURL.path,
                 forKey: "secondaryDisplayImagePath"
             )
-        } else if selectedMode == .solidColor {
-            secondaryColor = colorWell.color
+        } else if selectedDisplayMode == .solidColor {
+            secondaryColor = solidColorWell.color
             if let data = try? NSKeyedArchiver.archivedData(
                 withRootObject: secondaryColor,
                 requiringSecureCoding: true
@@ -754,13 +742,13 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
             }
         }
 
-        secondaryDisplayMode = selectedMode
+        secondaryDisplayMode = selectedDisplayMode
         UserDefaults.standard.set(
-            selectedMode.rawValue,
+            selectedDisplayMode.rawValue,
             forKey: "secondaryDisplayMode"
         )
         statusLabel.stringValue =
-            "Secondary display set to \(selectedMode.displayName)"
+            "Secondary display set to \(selectedDisplayMode.displayName)"
     }
 
     @objc private func presentOpenDocumentPanel(_ sender: Any?) {
@@ -813,7 +801,7 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
 
     private func resolveDocumentURLForFocus() -> URL? {
         if documentDirectoryURL != nil {
-            guard let fileName = MarkdownFileName.normalizedFilename(
+            guard let fileName = MarkdownFilename.normalizedFilename(
                 documentFileName,
                 fallback: Self.suggestedFileName()
             ) else {
@@ -908,19 +896,19 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private static func suggestedFileName() -> String {
-        let format = UserDefaults.standard.string(
-            forKey: defaultFileNameFormatKey
-        ) ?? DefaultFileNameFormat.defaultTemplate
-        return DefaultFileNameFormat.makeFilename(
-            format: format,
+        let template = UserDefaults.standard.string(
+            forKey: defaultFilenameTemplateKey
+        ) ?? DefaultFilenameTemplate.defaultTemplate
+        return DefaultFilenameTemplate.makeFilename(
+            template: template,
             date: Date()
-        ) ?? DefaultFileNameFormat.makeFilename(
-            format: DefaultFileNameFormat.defaultTemplate,
+        ) ?? DefaultFilenameTemplate.makeFilename(
+            template: DefaultFilenameTemplate.defaultTemplate,
             date: Date()
         ) ?? "focus.md"
     }
 
-    private static let defaultFileNameFormatKey = "defaultFileNameFormat"
+    private static let defaultFilenameTemplateKey = "defaultFileNameFormat"
 
     private static func currentTimeString() -> String {
         let formatter = DateFormatter()
@@ -1115,7 +1103,7 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
         FocusKeyboardBlocker.openAccessibilityPrivacySettings()
     }
 
-    func stopScopedResourceAccess() {
+    func releaseSecurityScopedResources() {
         documentFileAccess.releaseAccess()
         secondaryImageAccess.releaseAccess()
     }
