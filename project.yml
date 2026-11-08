@@ -43,7 +43,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.chativy.writingjail
         PRODUCT_NAME: WritingJail
         MARKETING_VERSION: "1.8"
-        CURRENT_PROJECT_VERSION: "11"
+        CURRENT_PROJECT_VERSION: "12"
         INFOPLIST_FILE: AppStore/Info.plist
         CODE_SIGN_ENTITLEMENTS: Resources/WritingJail.entitlements
         ENABLE_APP_SANDBOX: YES

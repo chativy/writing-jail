@@ -282,8 +282,30 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
                 return
             }
         } else {
-            boundFileURL = nil
-            stateLabel.stringValue = "New file selected for the next focus session"
+            editorDocument.replaceText("")
+            surface.textView.undoManager?.removeAllActions()
+            draftStore.save("")
+            do {
+                try "".write(
+                    to: targetURL,
+                    atomically: true,
+                    encoding: .utf8
+                )
+                boundFileAccess.retain(
+                    targetURL,
+                    bookmarkKey: "boundMarkdownFileBookmark"
+                )
+                boundFileURL = targetURL
+                stateLabel.stringValue =
+                    "\(fileName) created · Auto-saves every 30 seconds"
+            } catch {
+                boundFileURL = nil
+                showFileError(
+                    title: "Unable to Create File",
+                    message: error.localizedDescription
+                )
+                return
+            }
         }
 
         updateDestinationLabel()

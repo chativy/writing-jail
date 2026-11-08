@@ -15,8 +15,8 @@
 - [x] US$10 one-time price
 - [x] Availability in all 175 App Store territories
 - [x] Mac App Store distribution certificate and provisioning profile
-- [x] Universal archive validated and uploaded (build 11)
-- [x] Build 11 attached to version 1.0
+- [x] Universal archive validated and uploaded (build 12)
+- [x] Build 12 attached to version 1.0
 - [x] App privacy questionnaire answers documented
 
 ## Manual Completion
@@ -27,8 +27,8 @@
 - [ ] Install the signed build on a Mac, grant Accessibility access, and verify
   Cmd-Tab and Mission Control remain blocked during a focus session. On macOS
   27 and later, macOS requires adding the app manually with `+`.
-- [x] Submit version 1.0 with build 11 and all five screenshots for App Review.
-  The resubmission entered `WAITING_FOR_REVIEW` on November 1, 2026.
+- [x] Submit version 1.0 with build 12 and all five screenshots for App Review.
+  The resubmission entered `WAITING_FOR_REVIEW` on November 8, 2026.
 
 ## Review Risk
 
