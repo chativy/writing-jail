@@ -1,8 +1,8 @@
 import AppKit
-import FocusWriterCore
+import WritingJailCore
 import UniformTypeIdentifiers
 
-private final class MenuActionTarget: NSObject {
+private final class ClosureActionTarget: NSObject {
     private let action: () -> Void
 
     init(action: @escaping () -> Void) {
@@ -15,32 +15,32 @@ private final class MenuActionTarget: NSObject {
 }
 
 @MainActor
-final class MainWindowController: NSWindowController, NSWindowDelegate {
+final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
     private enum EndReason {
         case complete
         case emergency
     }
 
-    private let editorDocument: EditorDocument
-    private let draftStore = DraftStore()
-    private let inputBlocker = FocusInputBlocker()
-    private let boundFileAccess = ScopedResourceAccess()
-    private let secondaryImageAccess = ScopedResourceAccess()
-    private var surface: EditorSurface!
+    private let editorTextModel: EditorTextModel
+    private let recoveryDraftStore = RecoveryDraftStore()
+    private let keyboardBlocker = FocusKeyboardBlocker()
+    private let documentFileAccess = SecurityScopedResourceAccess()
+    private let secondaryImageAccess = SecurityScopedResourceAccess()
+    private var editorSurface: EditorSurface!
 
-    private let destinationLabel = NSTextField(labelWithString: "")
-    private let startButton = NSButton()
-    private let permissionButton = NSButton()
-    private let themeButton = NSButton()
+    private let documentLocationLabel = NSTextField(labelWithString: "")
+    private let startFocusButton = NSButton()
+    private let accessibilityPermissionButton = NSButton()
+    private let themeToggleButton = NSButton()
     private let wordCountLabel = NSTextField(labelWithString: "")
-    private let stateLabel = NSTextField(labelWithString: "Auto-saves every 30 seconds")
-    private var primaryThemeLabels: [NSTextField] = []
-    private var secondaryThemeLabels: [NSTextField] = []
+    private let statusLabel = NSTextField(labelWithString: "Auto-saves every 30 seconds")
+    private var primaryTextLabels: [NSTextField] = []
+    private var mutedTextLabels: [NSTextField] = []
     private weak var themedContentView: NSView?
-    private var selectedFolderURL: URL?
-    private var selectedFileName: String
-    private var boundFileURL: URL?
-    private var selectedSecondaryMode: SecondaryDisplayMode = .systemWallpaper
+    private var documentDirectoryURL: URL?
+    private var documentFileName: String
+    private var currentDocumentURL: URL?
+    private var secondaryDisplayMode: SecondaryDisplayMode = .systemWallpaper
     private var secondaryImageURL: URL?
     private var secondaryColor = NSColor(
         calibratedRed: 0.055,
@@ -49,32 +49,32 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         alpha: 1
     )
     private var autoSaveTimer: Timer?
-    private var focusOverlay: FocusOverlayController?
-    private var previousPresentationOptions: NSApplication.PresentationOptions = []
-    private var didPresentInitialFileChooser = false
+    private var focusOverlayController: FocusSessionOverlayController?
+    private var preFocusPresentationOptions: NSApplication.PresentationOptions = []
+    private var hasPresentedInitialDocumentChooser = false
 
-    private(set) var isFocusActive = false
+    private(set) var isFocusSessionActive = false
 
     init() {
-        editorDocument = EditorDocument(text: DraftStore().load())
-        selectedFileName = Self.defaultFileName()
+        editorTextModel = EditorTextModel(text: RecoveryDraftStore().loadText())
+        documentFileName = Self.suggestedFileName()
 
         let fileManager = FileManager.default
-        let fallbackFolder = fileManager.urls(
+        let fallbackDirectoryURL = fileManager.urls(
             for: .documentDirectory,
             in: .userDomainMask
         ).first?.appendingPathComponent("WritingJail", isDirectory: true)
-        let savedFolder = UserDefaults.standard.string(
+        let storedDirectoryPath = UserDefaults.standard.string(
             forKey: "lastMarkdownFolder"
         )
-        let savedFolderURL = savedFolder.map {
+        let storedDirectoryURL = storedDirectoryPath.map {
             URL(fileURLWithPath: $0, isDirectory: true)
         }
-        if let savedFolderURL,
-            fileManager.fileExists(atPath: savedFolderURL.path) {
-            selectedFolderURL = savedFolderURL
+        if let storedDirectoryURL,
+            fileManager.fileExists(atPath: storedDirectoryURL.path) {
+            documentDirectoryURL = storedDirectoryURL
         } else {
-            selectedFolderURL = fallbackFolder
+            documentDirectoryURL = fallbackDirectoryURL
         }
 
         let window = NSWindow(
@@ -92,52 +92,48 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
 
         super.init(window: window)
         window.delegate = self
-        loadSecondaryDisplaySettings()
-        buildInterface()
-        observeDocument()
-        startAutoSaveTimer()
-        refreshPermissionStatus()
+        restoreSecondaryDisplaySettings()
+        buildUserInterface()
+        observeDocumentChanges()
+        scheduleAutoSaveTimer()
+        refreshAccessibilityPermissionStatus()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func adjustFontSize(by delta: CGFloat) {
-        editorDocument.adjustFontSize(by: delta)
-        stateLabel.stringValue = "Text size: \(Int(editorDocument.fontSize)) pt"
+    func changeFontSize(by delta: CGFloat) {
+        editorTextModel.changeFontSize(by: delta)
+        statusLabel.stringValue = "Text size: \(Int(editorTextModel.fontSize)) pt"
     }
 
     @objc private func toggleTheme(_ sender: Any?) {
-        editorDocument.setTheme(editorDocument.theme.toggled)
+        editorTextModel.applyTheme(editorTextModel.theme.opposite)
         applyTheme()
-        stateLabel.stringValue =
-            editorDocument.theme == .dark ? "Dark mode active" : "Ivory mode active"
+        statusLabel.stringValue =
+            editorTextModel.theme == .dark ? "Dark mode active" : "Ivory mode active"
     }
 
     private func applyTheme() {
-        let palette = editorDocument.palette
-        window?.appearance = NSAppearance(named: editorDocument.theme.nsAppearance)
+        let palette = editorTextModel.palette
+        window?.appearance = NSAppearance(named: editorTextModel.theme.systemAppearance)
         themedContentView?.layer?.backgroundColor = palette.background.cgColor
-        for label in primaryThemeLabels {
+        for label in primaryTextLabels {
             label.textColor = palette.foreground
         }
-        for label in secondaryThemeLabels {
+        for label in mutedTextLabels {
             label.textColor = palette.secondaryText
         }
-        themeButton.title = editorDocument.theme.switchButtonTitle
-    }
-
-    func saveDraftNow() {
-        saveNow()
+        themeToggleButton.title = editorTextModel.theme.toggleButtonTitle
     }
 
     @discardableResult
-    func presentInitialFileChooser() -> Bool {
-        guard !didPresentInitialFileChooser, window != nil, !isFocusActive else {
+    func presentInitialDocumentChooser() -> Bool {
+        guard !hasPresentedInitialDocumentChooser, window != nil, !isFocusSessionActive else {
             return false
         }
-        didPresentInitialFileChooser = true
+        hasPresentedInitialDocumentChooser = true
 
         let panel = NSOpenPanel()
         panel.title = "Choose a Markdown File"
@@ -151,16 +147,16 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
         panel.canCreateDirectories = true
-        panel.directoryURL = selectedFolderURL
+        panel.directoryURL = documentDirectoryURL
 
-        let defaultName = MarkdownFileName.normalized(
-            selectedFileName,
-            fallback: Self.defaultFileName()
-        ) ?? Self.defaultFileName()
+        let suggestedName = MarkdownFileName.normalizedFilename(
+            documentFileName,
+            fallback: Self.suggestedFileName()
+        ) ?? Self.suggestedFileName()
         let filenameField = NSTextField(
             frame: NSRect(x: 0, y: 0, width: 280, height: 24)
         )
-        filenameField.stringValue = defaultName
+        filenameField.stringValue = suggestedName
         let filenameLabel = NSTextField(labelWithString: "New file name")
         let createButton = NSButton(
             title: "Create New File…",
@@ -169,12 +165,12 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         )
         createButton.bezelStyle = .rounded
         var createRequested = false
-        let createTarget = MenuActionTarget {
+        let createActionTarget = ClosureActionTarget {
             createRequested = true
             panel.cancel(nil)
         }
-        createButton.target = createTarget
-        createButton.action = #selector(MenuActionTarget.invoke(_:))
+        createButton.target = createActionTarget
+        createButton.action = #selector(ClosureActionTarget.invoke(_:))
 
         let accessory = NSView(
             frame: NSRect(x: 0, y: 0, width: 540, height: 52)
@@ -188,38 +184,38 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         panel.accessoryView = accessory
         panel.isAccessoryViewDisclosed = true
 
-        let response = withExtendedLifetime(createTarget) {
+        let alertResponse = withExtendedLifetime(createActionTarget) {
             panel.runModal()
         }
         if createRequested {
-            return presentNewFileFromStartup(
-                defaultName: filenameField.stringValue
+            return presentNewDocumentPanel(
+                suggestedName: filenameField.stringValue
             )
         }
-        guard response == .OK, let chosenURL = panel.url else {
+        guard alertResponse == .OK, let chosenURL = panel.url else {
             return false
         }
-        boundFileAccess.retain(chosenURL)
+        documentFileAccess.retainAccess(to: chosenURL)
 
-        let isDirectory = (try? chosenURL.resourceValues(
+        let isDirectoryURL = (try? chosenURL.resourceValues(
             forKeys: [.isDirectoryKey]
         ).isDirectory) ?? false
-        let selectedURL: URL
-        if isDirectory {
-            let fileName = MarkdownFileName.normalized(
+        let documentURLToOpen: URL
+        if isDirectoryURL {
+            let fileName = MarkdownFileName.normalizedFilename(
                 filenameField.stringValue,
-                fallback: defaultName
-            ) ?? defaultName
-            selectedURL = chosenURL.appendingPathComponent(fileName)
+                fallback: suggestedName
+            ) ?? suggestedName
+            documentURLToOpen = chosenURL.appendingPathComponent(fileName)
         } else {
-            selectedURL = chosenURL
+            documentURLToOpen = chosenURL
         }
 
-        applyInitialFileSelection(selectedURL)
+        loadOrCreateDocument(documentURLToOpen)
         return true
     }
 
-    private func presentNewFileFromStartup(defaultName: String) -> Bool {
+    private func presentNewDocumentPanel(suggestedName: String) -> Bool {
         let panel = NSSavePanel()
         panel.title = "Create a New Markdown File"
         panel.prompt = "Create"
@@ -227,62 +223,63 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             UTType(filenameExtension: "md") ?? .plainText
         ]
         panel.canCreateDirectories = true
-        panel.directoryURL = selectedFolderURL
-        panel.nameFieldStringValue = MarkdownFileName.normalized(
-            defaultName,
-            fallback: Self.defaultFileName()
-        ) ?? Self.defaultFileName()
+        panel.directoryURL = documentDirectoryURL
+        panel.nameFieldStringValue = MarkdownFileName.normalizedFilename(
+            suggestedName,
+            fallback: Self.suggestedFileName()
+        ) ?? Self.suggestedFileName()
 
         guard panel.runModal() == .OK, let chosenURL = panel.url else {
             return false
         }
-        boundFileAccess.retain(
+        documentFileAccess.retainAccess(
+            to:
             chosenURL.deletingLastPathComponent()
         )
-        applyInitialFileSelection(chosenURL)
+        loadOrCreateDocument(chosenURL)
         return true
     }
 
-    @objc func createNewFileFromMenu(_ sender: Any?) {
-        guard !isFocusActive else {
+    @objc func createNewDocumentFromMenu(_ sender: Any?) {
+        guard !isFocusSessionActive else {
             return
         }
-        _ = presentNewFileFromStartup(
-            defaultName: Self.defaultFileName()
+        _ = presentNewDocumentPanel(
+            suggestedName: Self.suggestedFileName()
         )
     }
 
     @objc func configureDefaultFileNameFormat(_ sender: Any?) {
-        guard !isFocusActive else {
+        guard !isFocusSessionActive else {
             return
         }
 
-        let currentFormat = UserDefaults.standard.string(
+        let storedFormat = UserDefaults.standard.string(
             forKey: Self.defaultFileNameFormatKey
-        ) ?? DefaultFileNameFormat.defaultFormat
-        let formatField = NSTextField(
+        ) ?? DefaultFileNameFormat.defaultTemplate
+        let formatTextField = NSTextField(
             frame: NSRect(x: 0, y: 0, width: 430, height: 26)
         )
-        formatField.stringValue = currentFormat
-        formatField.placeholderString = DefaultFileNameFormat.defaultFormat
+        formatTextField.stringValue = storedFormat
+        formatTextField.placeholderString = DefaultFileNameFormat.defaultTemplate
 
-        let example = DefaultFileNameFormat.fileName(
-            format: currentFormat,
+        let exampleFileName = DefaultFileNameFormat.makeFilename(
+            format: storedFormat,
             date: Date()
         ) ?? "focus.md"
-        let hint = NSTextField(
+        let instructionsLabel = NSTextField(
             wrappingLabelWithString:
-                "Tokens: {date}, {time}, {datetime}, {yyyy}, {MM}, {dd}, {HH}, {mm}, {ss}. The .md extension is added automatically. Example: \(example)"
+                "Tokens: {date}, {time}, {datetime}, {yyyy}, {MM}, {dd}, {HH}, {mm}, {ss}. The .md extension is added automatically. Example: \(exampleFileName)"
         )
-        hint.textColor = .secondaryLabelColor
+        instructionsLabel.textColor = .secondaryLabelColor
 
         let accessory = NSView(
             frame: NSRect(x: 0, y: 0, width: 520, height: 92)
         )
-        formatField.frame = NSRect(x: 0, y: 56, width: 500, height: 26)
-        hint.frame = NSRect(x: 0, y: 0, width: 500, height: 48)
-        accessory.addSubview(formatField)
-        accessory.addSubview(hint)
+        formatTextField.frame = NSRect(x: 0, y: 56, width: 500, height: 26)
+        instructionsLabel.frame = NSRect(x: 0, y: 0, width: 500, height: 48)
+        accessory.addSubview(formatTextField)
+        accessory.addSubview(instructionsLabel)
 
         let alert = NSAlert()
         alert.messageText = "Default File Name Format"
@@ -295,14 +292,14 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             return
         }
 
-        let format = formatField.stringValue.trimmingCharacters(
+        let format = formatTextField.stringValue.trimmingCharacters(
             in: .whitespacesAndNewlines
         )
-        guard let preview = DefaultFileNameFormat.fileName(
+        guard let preview = DefaultFileNameFormat.makeFilename(
             format: format,
             date: Date()
         ) else {
-            showFileError(
+            presentFileError(
                 title: "Invalid File Name Format",
                 message:
                     "Enter a non-empty format without /. The .md extension is added automatically."
@@ -314,58 +311,60 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             format,
             forKey: Self.defaultFileNameFormatKey
         )
-        stateLabel.stringValue = "Default file name: \(preview)"
+        statusLabel.stringValue = "Default file name: \(preview)"
     }
 
-    private func applyInitialFileSelection(_ chosenURL: URL) {
-        let fileName = MarkdownFileName.normalized(
+    private func loadOrCreateDocument(_ chosenURL: URL) {
+        let fileName = MarkdownFileName.normalizedFilename(
             chosenURL.lastPathComponent,
-            fallback: Self.defaultFileName()
-        ) ?? Self.defaultFileName()
-        let folderURL = chosenURL.deletingLastPathComponent()
-        rememberFolder(folderURL)
-        selectedFileName = fileName
+            fallback: Self.suggestedFileName()
+        ) ?? Self.suggestedFileName()
+        let directoryURL = chosenURL.deletingLastPathComponent()
+        rememberDocumentDirectory(directoryURL)
+        documentFileName = fileName
 
-        let targetURL = folderURL.appendingPathComponent(fileName)
-        if FileManager.default.fileExists(atPath: targetURL.path) {
+        let suggestedDocumentURL = directoryURL.appendingPathComponent(fileName)
+        if FileManager.default.fileExists(atPath: suggestedDocumentURL.path) {
             do {
-                boundFileAccess.retain(
-                    targetURL,
+                documentFileAccess.retainAccess(
+                    to:
+                    suggestedDocumentURL,
                     bookmarkKey: "boundMarkdownFileBookmark"
                 )
-                let text = try String(contentsOf: targetURL, encoding: .utf8)
-                editorDocument.replaceText(text)
-                surface.textView.undoManager?.removeAllActions()
-                boundFileURL = targetURL
-                stateLabel.stringValue =
+                let text = try String(contentsOf: suggestedDocumentURL, encoding: .utf8)
+                editorTextModel.setText(text)
+                editorSurface.textView.undoManager?.removeAllActions()
+                currentDocumentURL = suggestedDocumentURL
+                statusLabel.stringValue =
                     "\(fileName) opened · Auto-saves every 30 seconds"
             } catch {
-                showFileError(
+                presentFileError(
                     title: "Unable to Read Existing File",
                     message: error.localizedDescription
                 )
                 return
             }
         } else {
-            editorDocument.replaceText("")
-            surface.textView.undoManager?.removeAllActions()
-            draftStore.save("")
+            editorTextModel.setText("")
+            editorSurface.textView.undoManager?.removeAllActions()
+            recoveryDraftStore.saveText("")
             do {
                 try "".write(
-                    to: targetURL,
+                    to: suggestedDocumentURL,
                     atomically: true,
                     encoding: .utf8
                 )
-                boundFileAccess.retain(
-                    targetURL,
+                documentFileAccess.retainAccess(
+                    to:
+                    suggestedDocumentURL,
                     bookmarkKey: "boundMarkdownFileBookmark"
                 )
-                boundFileURL = targetURL
-                stateLabel.stringValue =
+                currentDocumentURL = suggestedDocumentURL
+                statusLabel.stringValue =
                     "\(fileName) created · Auto-saves every 30 seconds"
             } catch {
-                boundFileURL = nil
-                showFileError(
+                currentDocumentURL = nil
+                presentFileError(
                     title: "Unable to Create File",
                     message: error.localizedDescription
                 )
@@ -373,34 +372,34 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             }
         }
 
-        updateDestinationLabel()
-        window?.makeFirstResponder(surface.textView)
+        refreshDocumentLocationLabel()
+        window?.makeFirstResponder(editorSurface.textView)
     }
 
     @discardableResult
-    func openInitialFile(at fileURL: URL) -> Bool {
+    func openStartupDocument(at fileURL: URL) -> Bool {
         guard FileManager.default.fileExists(atPath: fileURL.path) else {
             return false
         }
-        applyInitialFileSelection(fileURL)
+        loadOrCreateDocument(fileURL)
         return true
     }
 
-    func refreshPermissionStatus() {
-        guard !isFocusActive else {
+    func refreshAccessibilityPermissionStatus() {
+        guard !isFocusSessionActive else {
             return
         }
 
-        if FocusInputBlocker.hasAccessibilityPermission {
-            permissionButton.title = "Input Blocking Ready"
-            permissionButton.isEnabled = false
+        if FocusKeyboardBlocker.accessibilityAccessGranted {
+            accessibilityPermissionButton.title = "Input Blocking Ready"
+            accessibilityPermissionButton.isEnabled = false
         } else {
-            permissionButton.title = "Configure Input Blocking"
-            permissionButton.isEnabled = true
+            accessibilityPermissionButton.title = "Configure Input Blocking"
+            accessibilityPermissionButton.isEnabled = true
         }
     }
 
-    private func buildInterface() {
+    private func buildUserInterface() {
         guard let contentView = window?.contentView else {
             return
         }
@@ -409,62 +408,62 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
 
         let titleLabel = NSTextField(labelWithString: "Writing Jail")
         titleLabel.font = .systemFont(ofSize: 22, weight: .bold)
-        primaryThemeLabels.append(titleLabel)
+        primaryTextLabels.append(titleLabel)
 
-        permissionButton.bezelStyle = .inline
-        permissionButton.controlSize = .small
-        permissionButton.target = self
-        permissionButton.action = #selector(configurePermission(_:))
+        accessibilityPermissionButton.bezelStyle = .inline
+        accessibilityPermissionButton.controlSize = .small
+        accessibilityPermissionButton.target = self
+        accessibilityPermissionButton.action = #selector(configureAccessibilityPermission(_:))
 
-        themeButton.bezelStyle = .inline
-        themeButton.controlSize = .small
-        themeButton.target = self
-        themeButton.action = #selector(toggleTheme(_:))
+        themeToggleButton.bezelStyle = .inline
+        themeToggleButton.controlSize = .small
+        themeToggleButton.target = self
+        themeToggleButton.action = #selector(toggleTheme(_:))
 
-        startButton.title = "Start Focus"
-        startButton.bezelStyle = .rounded
-        startButton.controlSize = .large
-        startButton.keyEquivalent = "\r"
-        startButton.target = self
-        startButton.action = #selector(startFocus(_:))
+        startFocusButton.title = "Start Focus"
+        startFocusButton.bezelStyle = .rounded
+        startFocusButton.controlSize = .large
+        startFocusButton.keyEquivalent = "\r"
+        startFocusButton.target = self
+        startFocusButton.action = #selector(startFocusSession(_:))
 
         let topBar = NSStackView(
             views: [
                 titleLabel,
                 flexibleSpacer(),
-                themeButton,
-                permissionButton,
-                startButton
+                themeToggleButton,
+                accessibilityPermissionButton,
+                startFocusButton
             ]
         )
         topBar.orientation = .horizontal
         topBar.alignment = .centerY
         topBar.spacing = 10
 
-        destinationLabel.font = .systemFont(ofSize: 12)
-        secondaryThemeLabels.append(destinationLabel)
-        destinationLabel.lineBreakMode = .byTruncatingMiddle
-        updateDestinationLabel()
+        documentLocationLabel.font = .systemFont(ofSize: 12)
+        mutedTextLabels.append(documentLocationLabel)
+        documentLocationLabel.lineBreakMode = .byTruncatingMiddle
+        refreshDocumentLocationLabel()
 
-        surface = EditorSurfaceFactory.make(
-            document: editorDocument,
-            palette: editorDocument.palette
+        editorSurface = EditorSurfaceBuilder.make(
+            editorTextModel: editorTextModel,
+            palette: editorTextModel.palette
         )
 
         wordCountLabel.font = .systemFont(ofSize: 12)
-        secondaryThemeLabels.append(wordCountLabel)
+        mutedTextLabels.append(wordCountLabel)
 
-        stateLabel.font = .systemFont(ofSize: 12)
-        secondaryThemeLabels.append(stateLabel)
+        statusLabel.font = .systemFont(ofSize: 12)
+        mutedTextLabels.append(statusLabel)
 
         let shortcutLabel = NSTextField(
             labelWithString: "Cmd +/− Text Size · Standard editing shortcuts enabled"
         )
         shortcutLabel.font = .systemFont(ofSize: 12)
-        secondaryThemeLabels.append(shortcutLabel)
+        mutedTextLabels.append(shortcutLabel)
 
         let footer = NSStackView(
-            views: [wordCountLabel, flexibleSpacer(), stateLabel, shortcutLabel]
+            views: [wordCountLabel, flexibleSpacer(), statusLabel, shortcutLabel]
         )
         footer.orientation = .horizontal
         footer.alignment = .centerY
@@ -472,8 +471,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
 
         for view in [
             topBar,
-            destinationLabel,
-            surface.scrollView,
+            documentLocationLabel,
+            editorSurface.scrollView,
             footer
         ] {
             view.translatesAutoresizingMaskIntoConstraints = false
@@ -485,56 +484,56 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             topBar.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
             topBar.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
 
-            destinationLabel.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 14),
-            destinationLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
-            destinationLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
+            documentLocationLabel.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 14),
+            documentLocationLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
+            documentLocationLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
 
-            surface.scrollView.topAnchor.constraint(equalTo: destinationLabel.bottomAnchor, constant: 10),
-            surface.scrollView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 18),
-            surface.scrollView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -18),
-            surface.scrollView.bottomAnchor.constraint(equalTo: footer.topAnchor, constant: -12),
+            editorSurface.scrollView.topAnchor.constraint(equalTo: documentLocationLabel.bottomAnchor, constant: 10),
+            editorSurface.scrollView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 18),
+            editorSurface.scrollView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -18),
+            editorSurface.scrollView.bottomAnchor.constraint(equalTo: footer.topAnchor, constant: -12),
 
             footer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
             footer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
             footer.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -14)
         ])
 
-        updateWordCount()
+        refreshWordCount()
         themedContentView = contentView
         applyTheme()
-        window?.makeFirstResponder(surface.textView)
+        window?.makeFirstResponder(editorSurface.textView)
     }
 
-    private func observeDocument() {
+    private func observeDocumentChanges() {
         NotificationCenter.default.addObserver(
             forName: NSTextStorage.didProcessEditingNotification,
-            object: editorDocument.textStorage,
+            object: editorTextModel.textStorage,
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                self?.documentDidChange()
+                self?.handleDocumentChange()
             }
         }
     }
 
-    private func documentDidChange() {
-        updateWordCount()
-        stateLabel.stringValue = "Modified · Auto-saves every 30 seconds"
+    private func handleDocumentChange() {
+        refreshWordCount()
+        statusLabel.stringValue = "Modified · Auto-saves every 30 seconds"
     }
 
-    private func updateWordCount() {
-        let text = editorDocument.text
+    private func refreshWordCount() {
+        let text = editorTextModel.text
         let words = text.split(whereSeparator: \.isWhitespace).count
         wordCountLabel.stringValue = "\(words) words · \(text.count) characters"
     }
 
-    private func startAutoSaveTimer() {
+    private func scheduleAutoSaveTimer() {
         autoSaveTimer = Timer.scheduledTimer(
             withTimeInterval: 30,
             repeats: true
         ) { [weak self] _ in
             Task { @MainActor in
-                self?.saveNow()
+                self?.saveCurrentState()
             }
         }
         if let autoSaveTimer {
@@ -542,24 +541,24 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         }
     }
 
-    private var targetURL: URL? {
+    private var suggestedDocumentURL: URL? {
         guard
-            let selectedFolderURL,
-            let fileName = MarkdownFileName.normalized(
-                selectedFileName,
-                fallback: Self.defaultFileName()
+            let documentDirectoryURL,
+            let fileName = MarkdownFileName.normalizedFilename(
+                documentFileName,
+                fallback: Self.suggestedFileName()
             )
         else {
             return nil
         }
-        return selectedFolderURL.appendingPathComponent(fileName, isDirectory: false)
+        return documentDirectoryURL.appendingPathComponent(fileName, isDirectory: false)
     }
 
-    func saveNow() {
-        draftStore.save(editorDocument.text)
-        let saveURL = isFocusActive ? targetURL : boundFileURL
+    func saveCurrentState() {
+        recoveryDraftStore.saveText(editorTextModel.text)
+        let saveURL = isFocusSessionActive ? suggestedDocumentURL : currentDocumentURL
         guard let saveURL else {
-            stateLabel.stringValue = "Recovery draft saved · Select a file to start"
+            statusLabel.stringValue = "Recovery draft saved · Select a file to start"
             return
         }
 
@@ -568,54 +567,55 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
                 at: saveURL.deletingLastPathComponent(),
                 withIntermediateDirectories: true
             )
-            try editorDocument.text.write(
+            try editorTextModel.text.write(
                 to: saveURL,
                 atomically: true,
                 encoding: .utf8
             )
-            if boundFileAccess.url?.standardizedFileURL
+            if documentFileAccess.activeResourceURL?.standardizedFileURL
                 != saveURL.standardizedFileURL {
-                boundFileAccess.retain(
+                documentFileAccess.retainAccess(
+                    to:
                     saveURL,
                     bookmarkKey: "boundMarkdownFileBookmark"
                 )
             }
-            boundFileURL = saveURL
-            stateLabel.stringValue = "Auto-saved · \(Self.clockString())"
+            currentDocumentURL = saveURL
+            statusLabel.stringValue = "Auto-saved · \(Self.currentTimeString())"
         } catch {
-            stateLabel.stringValue = "Save failed: \(error.localizedDescription)"
+            statusLabel.stringValue = "Save failed: \(error.localizedDescription)"
         }
     }
 
-    private func updateDestinationLabel() {
-        if let targetURL {
-            let isBound = boundFileURL?.standardizedFileURL == targetURL.standardizedFileURL
-            let exists = FileManager.default.fileExists(atPath: targetURL.path)
+    private func refreshDocumentLocationLabel() {
+        if let suggestedDocumentURL {
+            let isCurrentDocument = currentDocumentURL?.standardizedFileURL == suggestedDocumentURL.standardizedFileURL
+            let exists = FileManager.default.fileExists(atPath: suggestedDocumentURL.path)
             let state: String
-            if isBound {
+            if isCurrentDocument {
                 state = "editing"
             } else if exists {
                 state = "existing file · loaded on start"
             } else {
                 state = "new file"
             }
-            destinationLabel.stringValue =
-                "Save file (\(state)): \(targetURL.lastPathComponent)"
-            destinationLabel.toolTip = targetURL.path
+            documentLocationLabel.stringValue =
+                "Save file (\(state)): \(suggestedDocumentURL.lastPathComponent)"
+            documentLocationLabel.toolTip = suggestedDocumentURL.path
         } else {
-            destinationLabel.stringValue =
+            documentLocationLabel.stringValue =
                 "Choose a file or enter a file name before starting."
-            destinationLabel.toolTip = nil
+            documentLocationLabel.toolTip = nil
         }
     }
 
-    private func loadSecondaryDisplaySettings() {
-        selectedSecondaryMode =
+    private func restoreSecondaryDisplaySettings() {
+        secondaryDisplayMode =
             UserDefaults.standard.string(forKey: "secondaryDisplayMode")
             .flatMap(SecondaryDisplayMode.init(rawValue:))
             ?? .systemWallpaper
 
-        if let restoredImageURL = secondaryImageAccess.restore(
+        if let restoredImageURL = secondaryImageAccess.restoreAccess(
             bookmarkKey: "secondaryDisplayImageBookmark",
             fallbackPathKey: "secondaryDisplayImagePath"
         ),
@@ -634,18 +634,18 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         }
     }
 
-    func showSecondaryDisplayDialog() {
+    func presentSecondaryDisplayDialog() {
         guard NSScreen.screens.count > 1 else {
             return
         }
 
         let modePopup = NSPopUpButton(frame: .zero, pullsDown: false)
         for mode in SecondaryDisplayMode.allCases {
-            modePopup.addItem(withTitle: mode.title)
+            modePopup.addItem(withTitle: mode.displayName)
         }
         modePopup.selectItem(
             at: SecondaryDisplayMode.allCases.firstIndex(
-                of: selectedSecondaryMode
+                of: secondaryDisplayMode
             ) ?? 1
         )
         let previousModeIndex = modePopup.indexOfSelectedItem
@@ -655,14 +655,14 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
 
         let modeLabel = NSTextField(labelWithString: "Display content")
         let colorLabel = NSTextField(labelWithString: "Solid color")
-        let hint = NSTextField(
+        let instructionsLabel = NSTextField(
             wrappingLabelWithString:
                 "This setting applies to every secondary display. Selecting Custom Image opens an image picker immediately."
         )
-        hint.textColor = .secondaryLabelColor
-        var pendingImageURL = secondaryImageURL
+        instructionsLabel.textColor = .secondaryLabelColor
+        var pendingCustomImageURL = secondaryImageURL
 
-        let modeActionTarget = MenuActionTarget {
+        let modeSelectionActionTarget = ClosureActionTarget {
             let index = modePopup.indexOfSelectedItem
             guard SecondaryDisplayMode.allCases.indices.contains(index) else {
                 return
@@ -683,11 +683,11 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
                 modePopup.selectItem(at: previousModeIndex)
                 return
             }
-            pendingImageURL = imageURL
-            hint.stringValue = "Selected image: \(imageURL.lastPathComponent)"
+            pendingCustomImageURL = imageURL
+            instructionsLabel.stringValue = "Selected image: \(imageURL.lastPathComponent)"
         }
-        modePopup.target = modeActionTarget
-        modePopup.action = #selector(MenuActionTarget.invoke(_:))
+        modePopup.target = modeSelectionActionTarget
+        modePopup.action = #selector(ClosureActionTarget.invoke(_:))
 
         let modeRow = NSStackView(views: [modeLabel, modePopup])
         modeRow.orientation = .horizontal
@@ -699,7 +699,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         colorRow.alignment = .centerY
         colorRow.spacing = 12
 
-        let accessory = NSStackView(views: [modeRow, colorRow, hint])
+        let accessory = NSStackView(views: [modeRow, colorRow, instructionsLabel])
         accessory.orientation = .vertical
         accessory.alignment = .leading
         accessory.spacing = 10
@@ -712,10 +712,10 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         alert.accessoryView = accessory
         alert.addButton(withTitle: "Apply")
         alert.addButton(withTitle: "Cancel")
-        let response = withExtendedLifetime(modeActionTarget) {
+        let alertResponse = withExtendedLifetime(modeSelectionActionTarget) {
             alert.runModal()
         }
-        guard response == .alertFirstButtonReturn else {
+        guard alertResponse == .alertFirstButtonReturn else {
             return
         }
 
@@ -726,13 +726,14 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         let selectedMode = SecondaryDisplayMode.allCases[index]
 
         if selectedMode == .customImage {
-            guard let imageURL = pendingImageURL else {
-                stateLabel.stringValue =
+            guard let imageURL = pendingCustomImageURL else {
+                statusLabel.stringValue =
                     "Select an image before applying Custom Image."
                 return
             }
             secondaryImageURL = imageURL
-            secondaryImageAccess.retain(
+            secondaryImageAccess.retainAccess(
+                to:
                 imageURL,
                 bookmarkKey: "secondaryDisplayImageBookmark"
             )
@@ -753,16 +754,17 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             }
         }
 
-        selectedSecondaryMode = selectedMode
+        secondaryDisplayMode = selectedMode
         UserDefaults.standard.set(
             selectedMode.rawValue,
             forKey: "secondaryDisplayMode"
         )
-        stateLabel.stringValue = "Secondary display set to \(selectedMode.title)"
+        statusLabel.stringValue =
+            "Secondary display set to \(selectedMode.displayName)"
     }
 
-    @objc private func openExistingFile(_ sender: Any?) {
-        saveNow()
+    @objc private func presentOpenDocumentPanel(_ sender: Any?) {
+        saveCurrentState()
 
         let panel = NSOpenPanel()
         panel.title = "Open Markdown File"
@@ -773,8 +775,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         panel.allowedContentTypes = [
             UTType(filenameExtension: "md") ?? .plainText
         ]
-        if let selectedFolderURL {
-            panel.directoryURL = selectedFolderURL
+        if let documentDirectoryURL {
+            panel.directoryURL = documentDirectoryURL
         }
 
         guard panel.runModal() == .OK, let fileURL = panel.url else {
@@ -782,47 +784,48 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         }
 
         do {
-            boundFileAccess.retain(
+            documentFileAccess.retainAccess(
+                to:
                 fileURL,
                 bookmarkKey: "boundMarkdownFileBookmark"
             )
             let text = try String(contentsOf: fileURL, encoding: .utf8)
-            editorDocument.replaceText(text)
-            surface.textView.undoManager?.removeAllActions()
-            rememberFolder(fileURL.deletingLastPathComponent())
-            boundFileURL = fileURL
-            selectedFileName = fileURL.lastPathComponent
-            updateDestinationLabel()
-            stateLabel.stringValue =
+            editorTextModel.setText(text)
+            editorSurface.textView.undoManager?.removeAllActions()
+            rememberDocumentDirectory(fileURL.deletingLastPathComponent())
+            currentDocumentURL = fileURL
+            documentFileName = fileURL.lastPathComponent
+            refreshDocumentLocationLabel()
+            statusLabel.stringValue =
                 "\(fileURL.lastPathComponent) opened · Auto-saves every 30 seconds"
-            window?.makeFirstResponder(surface.textView)
+            window?.makeFirstResponder(editorSurface.textView)
         } catch {
-            showFileError(
+            presentFileError(
                 title: "Unable to Open File",
                 message: error.localizedDescription
             )
         }
     }
 
-    @objc func openFileFromMenu(_ sender: Any?) {
-        openExistingFile(sender)
+    @objc func openDocumentFromMenu(_ sender: Any?) {
+        presentOpenDocumentPanel(sender)
     }
 
-    private func resolveTargetURLForFocus() -> URL? {
-        if selectedFolderURL != nil {
-            guard let fileName = MarkdownFileName.normalized(
-                selectedFileName,
-                fallback: Self.defaultFileName()
+    private func resolveDocumentURLForFocus() -> URL? {
+        if documentDirectoryURL != nil {
+            guard let fileName = MarkdownFileName.normalizedFilename(
+                documentFileName,
+                fallback: Self.suggestedFileName()
             ) else {
-                showFileError(
+                presentFileError(
                     title: "Check the File Name",
                     message: "File names cannot contain /. The file will be saved as .md."
                 )
                 return nil
             }
-            selectedFileName = fileName
-            updateDestinationLabel()
-            return selectedFolderURL?.appendingPathComponent(fileName, isDirectory: false)
+            documentFileName = fileName
+            refreshDocumentLocationLabel()
+            return documentDirectoryURL?.appendingPathComponent(fileName, isDirectory: false)
         }
 
         let panel = NSOpenPanel()
@@ -839,61 +842,64 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             return nil
         }
 
-        rememberFolder(chosenURL.deletingLastPathComponent())
-        selectedFileName = chosenURL.lastPathComponent
-        updateDestinationLabel()
+        rememberDocumentDirectory(chosenURL.deletingLastPathComponent())
+        documentFileName = chosenURL.lastPathComponent
+        refreshDocumentLocationLabel()
         return chosenURL
     }
 
-    private func rememberFolder(_ folderURL: URL) {
-        selectedFolderURL = folderURL
+    private func rememberDocumentDirectory(_ directoryURL: URL) {
+        documentDirectoryURL = directoryURL
         UserDefaults.standard.set(
-            folderURL.path,
+            directoryURL.path,
             forKey: "lastMarkdownFolder"
         )
     }
 
-    private func prepareTargetForFocus(_ targetURL: URL) -> Bool {
+    private func prepareDocumentForFocus(_ suggestedDocumentURL: URL) -> Bool {
         let isSameFile =
-            boundFileURL?.standardizedFileURL == targetURL.standardizedFileURL
-        let fileExists = FileManager.default.fileExists(atPath: targetURL.path)
+            currentDocumentURL?.standardizedFileURL == suggestedDocumentURL.standardizedFileURL
+        let fileExists = FileManager.default.fileExists(atPath: suggestedDocumentURL.path)
         if fileExists {
-            boundFileAccess.retain(
-                targetURL,
+            documentFileAccess.retainAccess(
+                to:
+                suggestedDocumentURL,
                 bookmarkKey: "boundMarkdownFileBookmark"
             )
         } else {
-            boundFileAccess.retain(targetURL.deletingLastPathComponent())
+            documentFileAccess.retainAccess(
+                to: suggestedDocumentURL.deletingLastPathComponent()
+            )
         }
 
         if !isSameFile {
-            saveNow()
+            saveCurrentState()
         }
 
         if fileExists && !isSameFile {
             do {
-                let text = try String(contentsOf: targetURL, encoding: .utf8)
-                editorDocument.replaceText(text)
-                surface.textView.undoManager?.removeAllActions()
-                boundFileURL = targetURL
-                stateLabel.stringValue =
-                    "\(targetURL.lastPathComponent) loaded from disk"
+                let text = try String(contentsOf: suggestedDocumentURL, encoding: .utf8)
+                editorTextModel.setText(text)
+                editorSurface.textView.undoManager?.removeAllActions()
+                currentDocumentURL = suggestedDocumentURL
+                statusLabel.stringValue =
+                    "\(suggestedDocumentURL.lastPathComponent) loaded from disk"
             } catch {
-                showFileError(
+                presentFileError(
                     title: "Unable to Read Existing File",
-                    message: "\(targetURL.path)\n\n\(error.localizedDescription)"
+                    message: "\(suggestedDocumentURL.path)\n\n\(error.localizedDescription)"
                 )
                 return false
             }
         } else {
-            boundFileURL = targetURL
+            currentDocumentURL = suggestedDocumentURL
         }
 
-        updateDestinationLabel()
+        refreshDocumentLocationLabel()
         return true
     }
 
-    private func showFileError(title: String, message: String) {
+    private func presentFileError(title: String, message: String) {
         let alert = NSAlert()
         alert.messageText = title
         alert.informativeText = message
@@ -901,43 +907,43 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         alert.runModal()
     }
 
-    private static func defaultFileName() -> String {
+    private static func suggestedFileName() -> String {
         let format = UserDefaults.standard.string(
             forKey: defaultFileNameFormatKey
-        ) ?? DefaultFileNameFormat.defaultFormat
-        return DefaultFileNameFormat.fileName(
+        ) ?? DefaultFileNameFormat.defaultTemplate
+        return DefaultFileNameFormat.makeFilename(
             format: format,
             date: Date()
-        ) ?? DefaultFileNameFormat.fileName(
-            format: DefaultFileNameFormat.defaultFormat,
+        ) ?? DefaultFileNameFormat.makeFilename(
+            format: DefaultFileNameFormat.defaultTemplate,
             date: Date()
         ) ?? "focus.md"
     }
 
     private static let defaultFileNameFormatKey = "defaultFileNameFormat"
 
-    private static func clockString() -> String {
+    private static func currentTimeString() -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "HH:mm:ss"
         return formatter.string(from: Date())
     }
 
-    @objc private func startFocus(_ sender: Any?) {
-        guard !isFocusActive else {
+    @objc private func startFocusSession(_ sender: Any?) {
+        guard !isFocusSessionActive else {
             return
         }
-        guard let duration = requestFocusDuration() else {
+        guard let duration = requestFocusSessionDuration() else {
             return
         }
-        guard let targetURL = resolveTargetURLForFocus() else {
+        guard let suggestedDocumentURL = resolveDocumentURLForFocus() else {
             return
         }
-        guard prepareTargetForFocus(targetURL) else {
+        guard prepareDocumentForFocus(suggestedDocumentURL) else {
             return
         }
 
-        if !FocusInputBlocker.hasAccessibilityPermission {
+        if !FocusKeyboardBlocker.accessibilityAccessGranted {
             let alert = NSAlert()
             alert.messageText = "Input Blocking Permission Required"
             alert.informativeText =
@@ -950,26 +956,26 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             case .alertFirstButtonReturn:
                 break
             case .alertSecondButtonReturn:
-                configurePermission(nil)
+                configureAccessibilityPermission(nil)
                 return
             default:
                 return
             }
         }
 
-        beginFocus(duration: duration, targetURL: targetURL)
+        beginFocusSession(duration: duration, suggestedDocumentURL: suggestedDocumentURL)
     }
 
-    private func requestFocusDuration() -> FocusDuration? {
+    private func requestFocusSessionDuration() -> FocusSessionDuration? {
         while true {
             let durationLabel = NSTextField(labelWithString: "Duration (minutes)")
             let durationPopup = NSPopUpButton(
                 frame: NSRect(x: 0, y: 0, width: 120, height: 26),
                 pullsDown: false
             )
-            for minutes in FocusDuration.minuteOptions {
+            for minutes in FocusSessionDuration.availableMinuteOptions {
                 durationPopup.addItem(
-                    withTitle: FocusDuration.label(minutes: minutes)
+                    withTitle: FocusSessionDuration.displayLabel(forMinutes: minutes)
                 )
                 durationPopup.lastItem?.representedObject = minutes
             }
@@ -996,15 +1002,15 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             guard
                 let selectedMinutes = durationPopup.selectedItem?
                     .representedObject as? Int,
-                let duration = FocusDuration(input: String(selectedMinutes)) else {
+                let duration = FocusSessionDuration(input: String(selectedMinutes)) else {
                 continue
             }
 
-            if duration.seconds >= 30 * 60 {
+            if duration.totalSeconds >= 30 * 60 {
                 let confirmation = NSAlert()
                 confirmation.messageText = "Confirm Long Focus Session"
                 confirmation.informativeText =
-                    "This session will last \(duration.displayMinutes) minutes. You will not be able to leave Writing Jail until the timer ends."
+                    "This session will last \(duration.wholeMinutes) minutes. You will not be able to leave Writing Jail until the timer ends."
                 confirmation.addButton(withTitle: "Start Session")
                 confirmation.addButton(withTitle: "Change Duration")
                 if confirmation.runModal() != .alertFirstButtonReturn {
@@ -1015,22 +1021,22 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         }
     }
 
-    private func beginFocus(duration: FocusDuration, targetURL: URL) {
-        saveDraftNow()
-        isFocusActive = true
-        previousPresentationOptions = NSApp.presentationOptions
+    private func beginFocusSession(duration: FocusSessionDuration, suggestedDocumentURL: URL) {
+        saveCurrentState()
+        isFocusSessionActive = true
+        preFocusPresentationOptions = NSApp.presentationOptions
 
-        let overlay = FocusOverlayController(
-            document: editorDocument,
-            duration: duration.seconds,
-            destinationName: targetURL.lastPathComponent,
-            secondaryMode: selectedSecondaryMode,
+        let overlay = FocusSessionOverlayController(
+            editorTextModel: editorTextModel,
+            duration: duration.totalSeconds,
+            documentFileName: suggestedDocumentURL.lastPathComponent,
+            secondaryDisplayMode: secondaryDisplayMode,
             secondaryImageURL: secondaryImageURL,
             secondaryColor: secondaryColor
         ) { [weak self] in
-            self?.endFocus(reason: .complete)
+            self?.endFocusSession(reason: .complete)
         }
-        focusOverlay = overlay
+        focusOverlayController = overlay
         overlay.present()
 
         NSApp.presentationOptions = [
@@ -1044,51 +1050,51 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             .disableMenuBarTransparency
         ]
 
-        inputBlocker.onEmergencyUnlock = { [weak self] in
-            self?.endFocus(reason: .emergency)
+        keyboardBlocker.onEmergencyExit = { [weak self] in
+            self?.endFocusSession(reason: .emergency)
         }
-        if !inputBlocker.start() {
-            stateLabel.stringValue = "System shortcut blocking could not start"
+        if !keyboardBlocker.startBlocking() {
+            statusLabel.stringValue = "System shortcut blocking could not start"
         } else {
-            stateLabel.stringValue = "Maximum focus lock active"
+            statusLabel.stringValue = "Maximum focus lock active"
         }
 
         NSApp.activate(ignoringOtherApps: true)
         window?.orderOut(nil)
     }
 
-    private func endFocus(reason: EndReason) {
-        guard isFocusActive else {
+    private func endFocusSession(reason: EndReason) {
+        guard isFocusSessionActive else {
             return
         }
 
-        inputBlocker.stop()
-        inputBlocker.onEmergencyUnlock = nil
-        NSApp.presentationOptions = previousPresentationOptions
-        saveDraftNow()
+        keyboardBlocker.stopBlocking()
+        keyboardBlocker.onEmergencyExit = nil
+        NSApp.presentationOptions = preFocusPresentationOptions
+        saveCurrentState()
 
         window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
-        focusOverlay?.dismiss()
-        focusOverlay = nil
-        isFocusActive = false
+        focusOverlayController?.dismiss()
+        focusOverlayController = nil
+        isFocusSessionActive = false
 
-        stateLabel.stringValue = reason == .complete
+        statusLabel.stringValue = reason == .complete
             ? "Focus complete · Saved"
             : "Emergency exit · Saved"
         applyTheme()
-        refreshPermissionStatus()
+        refreshAccessibilityPermissionStatus()
 
-        window?.makeFirstResponder(surface.textView)
+        window?.makeFirstResponder(editorSurface.textView)
     }
 
-    @objc private func configurePermission(_ sender: Any?) {
+    @objc private func configureAccessibilityPermission(_ sender: Any?) {
         if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27 {
             presentManualAccessibilityInstructions()
             return
         }
-        FocusInputBlocker.requestAccessibilityPermission()
-        FocusInputBlocker.openAccessibilitySettings()
+        FocusKeyboardBlocker.requestAccessibilityAccess()
+        FocusKeyboardBlocker.openAccessibilityPrivacySettings()
     }
 
     private func presentManualAccessibilityInstructions() {
@@ -1106,12 +1112,12 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         guard alert.runModal() == .alertFirstButtonReturn else {
             return
         }
-        FocusInputBlocker.openAccessibilitySettings()
+        FocusKeyboardBlocker.openAccessibilityPrivacySettings()
     }
 
     func stopScopedResourceAccess() {
-        boundFileAccess.release()
-        secondaryImageAccess.release()
+        documentFileAccess.releaseAccess()
+        secondaryImageAccess.releaseAccess()
     }
 
     private func flexibleSpacer() -> NSView {

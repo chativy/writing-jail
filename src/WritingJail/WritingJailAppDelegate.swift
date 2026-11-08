@@ -1,8 +1,8 @@
 import AppKit
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
-    private var mainWindowController: MainWindowController?
+final class WritingJailAppDelegate: NSObject, NSApplicationDelegate {
+    private var mainWindowController: WritingJailWindowController?
     private var keyMonitor: Any?
     private var secondaryDisplayMenuItem: NSMenuItem?
     private var screenObserver: NSObjectProtocol?
@@ -10,17 +10,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = makeMainMenu()
 
-        let controller = MainWindowController()
+        let controller = WritingJailWindowController()
         mainWindowController = controller
         NSApp.activate(ignoringOtherApps: true)
         updateSecondaryDisplayMenuAvailability()
 
         if let startupFile = startupFileArgument(),
-            controller.openInitialFile(at: startupFile) {
+            controller.openStartupDocument(at: startupFile) {
             controller.showWindow(nil)
         } else {
             DispatchQueue.main.async {
-                guard controller.presentInitialFileChooser() else {
+                guard controller.presentInitialDocumentChooser() else {
                     NSApp.terminate(nil)
                     return
                 }
@@ -47,10 +47,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
             switch event.keyCode {
             case 24, 69:
-                self?.mainWindowController?.adjustFontSize(by: 2)
+                self?.mainWindowController?.changeFontSize(by: 2)
                 return nil
             case 27, 78:
-                self?.mainWindowController?.adjustFontSize(by: -2)
+                self?.mainWindowController?.changeFontSize(by: -2)
                 return nil
             default:
                 return event
@@ -59,11 +59,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {
-        mainWindowController?.refreshPermissionStatus()
+        mainWindowController?.refreshAccessibilityPermissionStatus()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        mainWindowController?.saveDraftNow()
+        mainWindowController?.saveCurrentState()
         mainWindowController?.stopScopedResourceAccess()
         if let keyMonitor {
             NSEvent.removeMonitor(keyMonitor)
@@ -76,29 +76,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminateAfterLastWindowClosed(
         _ sender: NSApplication
     ) -> Bool {
-        !(mainWindowController?.isFocusActive ?? false)
+        !(mainWindowController?.isFocusSessionActive ?? false)
     }
 
     func applicationShouldTerminate(
         _ sender: NSApplication
     ) -> NSApplication.TerminateReply {
-        (mainWindowController?.isFocusActive ?? false) ? .terminateCancel : .terminateNow
+        (mainWindowController?.isFocusSessionActive ?? false) ? .terminateCancel : .terminateNow
     }
 
     @objc private func zoomIn(_ sender: Any?) {
-        mainWindowController?.adjustFontSize(by: 2)
+        mainWindowController?.changeFontSize(by: 2)
     }
 
     @objc private func zoomOut(_ sender: Any?) {
-        mainWindowController?.adjustFontSize(by: -2)
+        mainWindowController?.changeFontSize(by: -2)
     }
 
-    @objc private func openFileFromMenu(_ sender: Any?) {
-        mainWindowController?.openFileFromMenu(sender)
+    @objc private func openDocumentFromMenu(_ sender: Any?) {
+        mainWindowController?.openDocumentFromMenu(sender)
     }
 
-    @objc private func createNewFileFromMenu(_ sender: Any?) {
-        mainWindowController?.createNewFileFromMenu(sender)
+    @objc private func createNewDocumentFromMenu(_ sender: Any?) {
+        mainWindowController?.createNewDocumentFromMenu(sender)
     }
 
     @objc private func configureDefaultFileNameFormat(_ sender: Any?) {
@@ -106,7 +106,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func showSecondaryDisplay(_ sender: Any?) {
-        mainWindowController?.showSecondaryDisplayDialog()
+        mainWindowController?.presentSecondaryDisplayDialog()
     }
 
     private func updateSecondaryDisplayMenuAvailability() {
@@ -185,13 +185,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         editMenu.addItem(.separator())
         let openFile = editMenu.addItem(
             withTitle: "Open File…",
-            action: #selector(openFileFromMenu(_:)),
+            action: #selector(openDocumentFromMenu(_:)),
             keyEquivalent: "o"
         )
         openFile.target = self
         let newFile = editMenu.addItem(
             withTitle: "New File…",
-            action: #selector(createNewFileFromMenu(_:)),
+            action: #selector(createNewDocumentFromMenu(_:)),
             keyEquivalent: "n"
         )
         newFile.target = self

@@ -12,18 +12,18 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "FocusWriterCore",
-            path: "src/FocusWriterCore"
+            name: "WritingJailCore",
+            path: "src/WritingJailCore"
         ),
         .executableTarget(
             name: "WritingJail",
-            dependencies: ["FocusWriterCore"],
-            path: "src/FocusWriter"
+            dependencies: ["WritingJailCore"],
+            path: "src/WritingJail"
         ),
         .testTarget(
-            name: "FocusWriterCoreTests",
-            dependencies: ["FocusWriterCore"],
-            path: "tests/FocusWriterCoreTests"
+            name: "WritingJailCoreTests",
+            dependencies: ["WritingJailCore"],
+            path: "tests/WritingJailCoreTests"
         )
     ],
     swiftLanguageModes: [.v5]

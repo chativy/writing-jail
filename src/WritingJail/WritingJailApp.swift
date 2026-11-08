@@ -7,7 +7,7 @@ enum WritingJailApp {
         migrateLegacySettings()
 
         let application = NSApplication.shared
-        let delegate = AppDelegate()
+        let delegate = WritingJailAppDelegate()
         application.delegate = delegate
         application.setActivationPolicy(.regular)
         application.run()

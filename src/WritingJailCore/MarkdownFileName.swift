@@ -1,7 +1,7 @@
 import Foundation
 
 public enum MarkdownFileName {
-    public static func normalized(
+    public static func normalizedFilename(
         _ input: String,
         fallback: String
     ) -> String? {

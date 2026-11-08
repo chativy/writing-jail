@@ -1,6 +1,6 @@
 import AppKit
 
-private final class FocusWindow: NSWindow {
+private final class FocusEditorWindow: NSWindow {
     override var canBecomeKey: Bool {
         true
     }
@@ -10,7 +10,7 @@ private final class FocusWindow: NSWindow {
     }
 }
 
-private final class AmbientWindow: NSWindow {
+private final class AmbientOverlayWindow: NSWindow {
     override var canBecomeKey: Bool {
         false
     }
@@ -21,47 +21,47 @@ private final class AmbientWindow: NSWindow {
 }
 
 @MainActor
-final class FocusOverlayController {
-    private let document: EditorDocument
-    private let deadline: Date
-    private let destinationName: String
-    private let secondaryMode: SecondaryDisplayMode
+final class FocusSessionOverlayController {
+    private let editorTextModel: EditorTextModel
+    private let sessionDeadline: Date
+    private let documentFileName: String
+    private let secondaryDisplayMode: SecondaryDisplayMode
     private let secondaryImageURL: URL?
     private let secondaryColor: NSColor
-    private let onComplete: () -> Void
+    private let completionHandler: () -> Void
 
-    private var windows: [NSWindow] = []
-    private var editorWindows: [NSWindow] = []
+    private var overlayWindows: [NSWindow] = []
+    private var editorOverlayWindows: [NSWindow] = []
     private var editorDisplayID: CGDirectDisplayID?
-    private var countdownLabels: [NSTextField] = []
-    private var footerLabels: [NSTextField] = []
+    private var countdownTextLabels: [NSTextField] = []
+    private var footerTextLabels: [NSTextField] = []
     private var countdownTimer: Timer?
     private var screenObserver: NSObjectProtocol?
     private var activationObserver: NSObjectProtocol?
-    private var isActive = false
+    private var isPresented = false
 
     init(
-        document: EditorDocument,
+        editorTextModel: EditorTextModel,
         duration: TimeInterval,
-        destinationName: String,
-        secondaryMode: SecondaryDisplayMode,
+        documentFileName: String,
+        secondaryDisplayMode: SecondaryDisplayMode,
         secondaryImageURL: URL?,
         secondaryColor: NSColor,
-        onComplete: @escaping () -> Void
+        completionHandler: @escaping () -> Void
     ) {
-        self.document = document
-        self.deadline = Date().addingTimeInterval(duration)
-        self.destinationName = destinationName
-        self.secondaryMode = secondaryMode
+        self.editorTextModel = editorTextModel
+        self.sessionDeadline = Date().addingTimeInterval(duration)
+        self.documentFileName = documentFileName
+        self.secondaryDisplayMode = secondaryDisplayMode
         self.secondaryImageURL = secondaryImageURL
         self.secondaryColor = secondaryColor
-        self.onComplete = onComplete
+        self.completionHandler = completionHandler
     }
 
     func present() {
-        isActive = true
+        isPresented = true
         editorDisplayID = NSScreen.main.flatMap(displayID)
-        rebuildWindows()
+        rebuildOverlayWindows()
 
         screenObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,
@@ -69,7 +69,7 @@ final class FocusOverlayController {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                self?.rebuildWindows()
+                self?.rebuildOverlayWindows()
             }
         }
 
@@ -79,15 +79,16 @@ final class FocusOverlayController {
             queue: .main
         ) { [weak self] notification in
             guard
-                let activeApp = notification.userInfo?[
+                let activatedApplication = notification.userInfo?[
                     NSWorkspace.applicationUserInfoKey
                 ] as? NSRunningApplication,
-                activeApp.processIdentifier != ProcessInfo.processInfo.processIdentifier
+                activatedApplication.processIdentifier
+                    != ProcessInfo.processInfo.processIdentifier
             else {
                 return
             }
             Task { @MainActor in
-                self?.returnToFront()
+                self?.activateEditorWindow()
             }
         }
 
@@ -96,15 +97,15 @@ final class FocusOverlayController {
             repeats: true
         ) { [weak self] _ in
             Task { @MainActor in
-                self?.tick()
+                self?.updateCountdown()
             }
         }
         RunLoop.main.add(countdownTimer!, forMode: .common)
-        tick()
+        updateCountdown()
     }
 
     func dismiss() {
-        isActive = false
+        isPresented = false
         countdownTimer?.invalidate()
         countdownTimer = nil
 
@@ -117,48 +118,48 @@ final class FocusOverlayController {
         screenObserver = nil
         activationObserver = nil
 
-        for window in windows {
+        for window in overlayWindows {
             window.orderOut(nil)
             window.close()
         }
-        windows.removeAll()
-        editorWindows.removeAll()
-        countdownLabels.removeAll()
-        footerLabels.removeAll()
+        overlayWindows.removeAll()
+        editorOverlayWindows.removeAll()
+        countdownTextLabels.removeAll()
+        footerTextLabels.removeAll()
     }
 
-    private func tick() {
-        guard isActive else {
+    private func updateCountdown() {
+        guard isPresented else {
             return
         }
 
-        let remaining = max(0, deadline.timeIntervalSinceNow)
-        let timeText = Self.format(remaining)
-        let footerText = footerText()
-        for label in countdownLabels {
+        let remaining = max(0, sessionDeadline.timeIntervalSinceNow)
+        let timeText = Self.formattedCountdown(remaining)
+        let footerMessage = makeFooterMessage()
+        for label in countdownTextLabels {
             label.stringValue = timeText
         }
-        for label in footerLabels {
-            label.stringValue = footerText
+        for label in footerTextLabels {
+            label.stringValue = footerMessage
         }
 
         if remaining <= 0 {
-            isActive = false
+            isPresented = false
             countdownTimer?.invalidate()
             countdownTimer = nil
-            onComplete()
+            completionHandler()
         }
     }
 
-    private func rebuildWindows() {
-        for window in windows {
+    private func rebuildOverlayWindows() {
+        for window in overlayWindows {
             window.orderOut(nil)
             window.close()
         }
-        windows.removeAll()
-        editorWindows.removeAll()
-        countdownLabels.removeAll()
-        footerLabels.removeAll()
+        overlayWindows.removeAll()
+        editorOverlayWindows.removeAll()
+        countdownTextLabels.removeAll()
+        footerTextLabels.removeAll()
 
         let screens = NSScreen.screens
         guard !screens.isEmpty else {
@@ -176,27 +177,27 @@ final class FocusOverlayController {
 
         for screen in screens {
             let isEditorScreen =
-                secondaryMode == .mirrorEditor
+                secondaryDisplayMode == .mirrorEditor
                 || displayID(for: screen) == editorDisplayID
             let window = isEditorScreen
                 ? makeEditorWindow(for: screen)
                 : makeAmbientWindow(for: screen)
-            windows.append(window)
+            overlayWindows.append(window)
             window.orderFrontRegardless()
 
             if isEditorScreen {
-                editorWindows.append(window)
+                editorOverlayWindows.append(window)
             }
             if displayID(for: screen) == editorDisplayID {
                 window.makeKey()
             }
         }
 
-        returnToFront()
+        activateEditorWindow()
     }
 
     private func makeEditorWindow(for screen: NSScreen) -> NSWindow {
-        let palette = document.palette
+        let palette = editorTextModel.palette
         let window = makeOverlayWindow(
             for: screen,
             canBecomeKey: true,
@@ -225,14 +226,14 @@ final class FocusOverlayController {
             font: .monospacedDigitSystemFont(ofSize: 24, weight: .semibold),
             color: palette.foreground
         )
-        let themeButton = NSButton(
-            title: document.theme.switchButtonTitle,
+        let themeToggleButton = NSButton(
+            title: editorTextModel.theme.toggleButtonTitle,
             target: self,
             action: #selector(toggleTheme(_:))
         )
-        themeButton.bezelStyle = .inline
-        themeButton.controlSize = .small
-        themeButton.contentTintColor = palette.accent
+        themeToggleButton.bezelStyle = .inline
+        themeToggleButton.controlSize = .small
+        themeToggleButton.contentTintColor = palette.accent
 
         let header = NSStackView(
             views: [
@@ -241,24 +242,24 @@ final class FocusOverlayController {
                 status,
                 flexibleSpacer(),
                 countdown,
-                themeButton
+                themeToggleButton
             ]
         )
         header.orientation = .horizontal
         header.alignment = .centerY
         header.spacing = 12
 
-        let surface = EditorSurfaceFactory.make(
-            document: document,
+        let editorSurface = EditorSurfaceBuilder.make(
+            editorTextModel: editorTextModel,
             palette: palette
         )
         let footer = makeLabel(
-            footerText(),
+            makeFooterMessage(),
             font: .systemFont(ofSize: 12),
             color: palette.secondaryText
         )
 
-        for view in [header, surface.scrollView, footer] {
+        for view in [header, editorSurface.scrollView, footer] {
             view.translatesAutoresizingMaskIntoConstraints = false
             root.addSubview(view)
         }
@@ -268,20 +269,20 @@ final class FocusOverlayController {
             header.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 30),
             header.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -30),
 
-            surface.scrollView.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 14),
-            surface.scrollView.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 24),
-            surface.scrollView.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -24),
-            surface.scrollView.bottomAnchor.constraint(equalTo: footer.topAnchor, constant: -12),
+            editorSurface.scrollView.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 14),
+            editorSurface.scrollView.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 24),
+            editorSurface.scrollView.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -24),
+            editorSurface.scrollView.bottomAnchor.constraint(equalTo: footer.topAnchor, constant: -12),
 
             footer.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 30),
             footer.trailingAnchor.constraint(lessThanOrEqualTo: root.trailingAnchor, constant: -30),
             footer.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -18)
         ])
 
-        countdownLabels.append(countdown)
-        footerLabels.append(footer)
-        window.initialFirstResponder = surface.textView
-        window.makeFirstResponder(surface.textView)
+        countdownTextLabels.append(countdown)
+        footerTextLabels.append(footer)
+        window.initialFirstResponder = editorSurface.textView
+        window.makeFirstResponder(editorSurface.textView)
         return window
     }
 
@@ -295,7 +296,7 @@ final class FocusOverlayController {
         window.contentView = root
 
         let image: NSImage?
-        switch secondaryMode {
+        switch secondaryDisplayMode {
         case .systemWallpaper:
             image = NSWorkspace.shared
                 .desktopImageURL(for: screen)
@@ -337,7 +338,7 @@ final class FocusOverlayController {
     ) -> NSWindow {
         let window: NSWindow
         if canBecomeKey {
-            window = FocusWindow(
+            window = FocusEditorWindow(
                 contentRect: NSRect(origin: .zero, size: screen.frame.size),
                 styleMask: [.borderless],
                 backing: .buffered,
@@ -345,7 +346,7 @@ final class FocusOverlayController {
                 screen: screen
             )
         } else {
-            window = AmbientWindow(
+            window = AmbientOverlayWindow(
                 contentRect: NSRect(origin: .zero, size: screen.frame.size),
                 styleMask: [.borderless],
                 backing: .buffered,
@@ -368,7 +369,9 @@ final class FocusOverlayController {
         window.hasShadow = false
         window.animationBehavior = .none
         window.backgroundColor = palette.background
-        window.appearance = NSAppearance(named: document.theme.nsAppearance)
+        window.appearance = NSAppearance(
+            named: editorTextModel.theme.systemAppearance
+        )
         return window
     }
 
@@ -385,17 +388,17 @@ final class FocusOverlayController {
     }
 
     @objc private func toggleTheme(_ sender: Any?) {
-        document.setTheme(document.theme.toggled)
-        rebuildWindows()
+        editorTextModel.applyTheme(editorTextModel.theme.opposite)
+        rebuildOverlayWindows()
     }
 
-    private func returnToFront() {
-        guard isActive else {
+    private func activateEditorWindow() {
+        guard isPresented else {
             return
         }
         NSApp.activate(ignoringOtherApps: true)
 
-        guard let window = editorWindows.first else {
+        guard let window = editorOverlayWindows.first else {
             return
         }
         window.makeKeyAndOrderFront(nil)
@@ -428,7 +431,7 @@ final class FocusOverlayController {
         ] as? NSNumber)?.uint32Value
     }
 
-    private static func format(_ interval: TimeInterval) -> String {
+    private static func formattedCountdown(_ interval: TimeInterval) -> String {
         let totalSeconds = Int(interval.rounded(.up))
         let hours = totalSeconds / 3_600
         let minutes = (totalSeconds % 3_600) / 60
@@ -436,9 +439,9 @@ final class FocusOverlayController {
         return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
     }
 
-    private func footerText() -> String {
-        let text = document.text
+    private func makeFooterMessage() -> String {
+        let text = editorTextModel.text
         let words = text.split(whereSeparator: \.isWhitespace).count
-        return "\(destinationName) · \(words) words · \(text.count) characters · Auto-saves every 30 seconds"
+        return "\(documentFileName) · \(words) words · \(text.count) characters · Auto-saves every 30 seconds"
     }
 }

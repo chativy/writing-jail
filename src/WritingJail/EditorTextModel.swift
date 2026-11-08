@@ -1,35 +1,35 @@
 import AppKit
 
-final class EditorDocument {
+final class EditorTextModel {
     let textStorage = NSTextStorage()
 
     private(set) var fontSize: CGFloat
     private(set) var theme: EditorTheme
-    private let textViews = NSHashTable<NSTextView>.weakObjects()
-    private let paragraphStyle: NSParagraphStyle
+    private let registeredTextViews = NSHashTable<NSTextView>.weakObjects()
+    private let bodyParagraphStyle: NSParagraphStyle
 
     init(text: String) {
         let savedSize = UserDefaults.standard.double(forKey: "editorFontSize")
         fontSize = savedSize > 0 ? CGFloat(savedSize) : 20
-        theme = .saved
+        theme = .stored
 
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineBreakMode = .byCharWrapping
-        self.paragraphStyle = paragraphStyle
+        let bodyParagraphStyle = NSMutableParagraphStyle()
+        bodyParagraphStyle.lineBreakMode = .byCharWrapping
+        self.bodyParagraphStyle = bodyParagraphStyle
 
         textStorage.setAttributedString(
             NSAttributedString(
                 string: text,
                 attributes: [
-                    .font: currentFont,
-                    .paragraphStyle: self.paragraphStyle,
+                    .font: preferredFont,
+                    .paragraphStyle: self.bodyParagraphStyle,
                     .foregroundColor: theme.palette.foreground
                 ]
             )
         )
     }
 
-    var currentFont: NSFont {
+    var preferredFont: NSFont {
         NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
     }
 
@@ -41,16 +41,16 @@ final class EditorDocument {
         textStorage.string
     }
 
-    func register(_ textView: NSTextView) {
-        textViews.add(textView)
-        textView.typingAttributes[.font] = currentFont
-        textView.typingAttributes[.paragraphStyle] = paragraphStyle
-        textView.defaultParagraphStyle = paragraphStyle
-        textView.font = currentFont
-        configureAppearance(of: textView)
+    func registerTextView(_ textView: NSTextView) {
+        registeredTextViews.add(textView)
+        textView.typingAttributes[.font] = preferredFont
+        textView.typingAttributes[.paragraphStyle] = bodyParagraphStyle
+        textView.defaultParagraphStyle = bodyParagraphStyle
+        textView.font = preferredFont
+        applyAppearance(of: textView)
     }
 
-    func adjustFontSize(by delta: CGFloat) {
+    func changeFontSize(by delta: CGFloat) {
         let nextSize = min(max(fontSize + delta, 12), 72)
         guard nextSize != fontSize else {
             NSSound.beep()
@@ -63,33 +63,33 @@ final class EditorDocument {
         if textStorage.length > 0 {
             textStorage.addAttribute(
                 .font,
-                value: currentFont,
+                value: preferredFont,
                 range: NSRange(location: 0, length: textStorage.length)
             )
         }
 
-        for textView in textViews.allObjects {
-            textView.typingAttributes[.font] = currentFont
-            textView.typingAttributes[.paragraphStyle] = paragraphStyle
-            textView.font = currentFont
-            (textView as? WrappingTextView)?.refreshScrollOff()
+        for textView in registeredTextViews.allObjects {
+            textView.typingAttributes[.font] = preferredFont
+            textView.typingAttributes[.paragraphStyle] = bodyParagraphStyle
+            textView.font = preferredFont
+            (textView as? EditorTextView)?.maintainBottomScrollMargin()
         }
     }
 
-    func replaceText(_ text: String) {
+    func setText(_ text: String) {
         textStorage.setAttributedString(
             NSAttributedString(
                 string: text,
                 attributes: [
-                    .font: currentFont,
-                    .paragraphStyle: paragraphStyle,
+                    .font: preferredFont,
+                    .paragraphStyle: bodyParagraphStyle,
                     .foregroundColor: palette.foreground
                 ]
             )
         )
     }
 
-    func setTheme(_ theme: EditorTheme) {
+    func applyTheme(_ theme: EditorTheme) {
         guard self.theme != theme else {
             return
         }
@@ -103,15 +103,15 @@ final class EditorDocument {
             )
         }
 
-        for textView in textViews.allObjects {
-            configureAppearance(of: textView)
+        for textView in registeredTextViews.allObjects {
+            applyAppearance(of: textView)
             textView.needsLayout = true
             textView.needsDisplay = true
         }
     }
 
-    private func configureAppearance(of textView: NSTextView) {
-        textView.appearance = NSAppearance(named: theme.nsAppearance)
+    private func applyAppearance(of textView: NSTextView) {
+        textView.appearance = NSAppearance(named: theme.systemAppearance)
         textView.backgroundColor = palette.background
         textView.textColor = palette.foreground
         textView.insertionPointColor = palette.accent
@@ -123,9 +123,9 @@ final class EditorDocument {
     }
 }
 
-private final class WrappingTextView: NSTextView, NSTextViewDelegate {
-    private let scrollOffLines: CGFloat = 4
-    private var isAdjustingFrame = false
+private final class EditorTextView: NSTextView, NSTextViewDelegate {
+    private let bottomComfortLineCount: CGFloat = 4
+    private var isUpdatingFrame = false
 
     override init(frame frameRect: NSRect, textContainer container: NSTextContainer?) {
         super.init(frame: frameRect, textContainer: container)
@@ -150,22 +150,22 @@ private final class WrappingTextView: NSTextView, NSTextViewDelegate {
 
     override func keyDown(with event: NSEvent) {
         super.keyDown(with: event)
-        keepSelectionAboveBottomMargin()
+        ensureBottomMargin()
     }
 
     func textViewDidChangeSelection(_ notification: Notification) {
-        keepSelectionAboveBottomMargin()
+        ensureBottomMargin()
     }
 
     func textDidChange(_ notification: Notification) {
-        keepSelectionAboveBottomMargin()
+        ensureBottomMargin()
     }
 
-    func refreshScrollOff() {
-        keepSelectionAboveBottomMargin()
+    func maintainBottomScrollMargin() {
+        ensureBottomMargin()
     }
 
-    private func keepSelectionAboveBottomMargin() {
+    private func ensureBottomMargin() {
         guard let layoutManager, let textContainer else {
             return
         }
@@ -174,17 +174,17 @@ private final class WrappingTextView: NSTextView, NSTextViewDelegate {
         let lineHeight = layoutManager.defaultLineHeight(
             for: font ?? NSFont.monospacedSystemFont(ofSize: 20, weight: .regular)
         )
-        let bottomMargin = lineHeight * scrollOffLines
+        let bottomMargin = lineHeight * bottomComfortLineCount
         let minimumHeight =
             layoutManager.usedRect(for: textContainer).maxY
             + textContainerInset.height * 2
             + bottomMargin
-        if frame.height < minimumHeight && !isAdjustingFrame {
-            isAdjustingFrame = true
+        if frame.height < minimumHeight && !isUpdatingFrame {
+            isUpdatingFrame = true
             super.setFrameSize(
                 NSSize(width: frame.width, height: minimumHeight)
             )
-            isAdjustingFrame = false
+            isUpdatingFrame = false
         }
 
         let selectionLocation = selectedRange().location
@@ -226,7 +226,7 @@ private final class WrappingTextView: NSTextView, NSTextViewDelegate {
     }
 }
 
-private final class WrappingScrollView: NSScrollView {
+private final class EditorScrollView: NSScrollView {
     override func layout() {
         super.layout()
         guard let textView = documentView as? NSTextView else {
@@ -268,13 +268,13 @@ struct EditorSurface {
     let textView: NSTextView
 }
 
-enum EditorSurfaceFactory {
+enum EditorSurfaceBuilder {
     static func make(
-        document: EditorDocument,
+        editorTextModel: EditorTextModel,
         palette: EditorPalette
     ) -> EditorSurface {
         let layoutManager = NSLayoutManager()
-        document.textStorage.addLayoutManager(layoutManager)
+        editorTextModel.textStorage.addLayoutManager(layoutManager)
 
         let textContainer = NSTextContainer(
             containerSize: NSSize(width: 900, height: CGFloat.greatestFiniteMagnitude)
@@ -283,7 +283,7 @@ enum EditorSurfaceFactory {
         textContainer.lineFragmentPadding = 0
         layoutManager.addTextContainer(textContainer)
 
-        let textView = WrappingTextView(
+        let textView = EditorTextView(
             frame: NSRect(x: 0, y: 0, width: 900, height: 600),
             textContainer: textContainer
         )
@@ -309,7 +309,7 @@ enum EditorSurfaceFactory {
         textView.isAutomaticTextReplacementEnabled = false
         textView.isContinuousSpellCheckingEnabled = false
 
-        let scrollView = WrappingScrollView()
+        let scrollView = EditorScrollView()
         scrollView.documentView = textView
         scrollView.hasVerticalScroller = true
         scrollView.hasHorizontalScroller = false
@@ -330,7 +330,7 @@ enum EditorSurfaceFactory {
             height: CGFloat.greatestFiniteMagnitude
         )
 
-        document.register(textView)
+        editorTextModel.registerTextView(textView)
         return EditorSurface(scrollView: scrollView, textView: textView)
     }
 }

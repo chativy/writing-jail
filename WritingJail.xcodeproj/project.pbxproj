@@ -7,43 +7,43 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		08EF0BDB02CF1CD6424EA0CA /* FocusWriterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21746E89B9A30BBBF3CA4816 /* FocusWriterApp.swift */; };
-		401C8F20D202CCF3E6669470 /* EditorTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23308AA44C1DE4141C550849 /* EditorTheme.swift */; };
-		40430DFE127C62C5B92C7851 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 966405A07620146A529776B0 /* AppDelegate.swift */; };
-		532C74B41544A0BF335018AB /* MarkdownFileName.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FD570EA9D9E405A55AADC85 /* MarkdownFileName.swift */; };
-		5EAB8B76882901922F4291A0 /* FocusWriterCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 18E29EE837D11178939F07C6 /* FocusWriterCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		651F14970FBBA28C3E902CEB /* EditorDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF9673B9C33C8D5AAA3140E3 /* EditorDocument.swift */; };
-		6A92DAC08A4B9BBC91EF8793 /* FocusWriterCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 18E29EE837D11178939F07C6 /* FocusWriterCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		6A977DD45C97050DDE29761C /* ScopedResourceAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10CA36C948608C1583F8BFC9 /* ScopedResourceAccess.swift */; };
-		72D18772AA09ED87D09B447A /* DraftStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD87A2765AEFF1BACB7CE24 /* DraftStore.swift */; };
-		78C9A2A66A0CD309E0440708 /* FocusWriterCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 18E29EE837D11178939F07C6 /* FocusWriterCore.framework */; };
-		868A0F97EA9E28E3ED1C5CDA /* SecondaryDisplayMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21825AE7685C226063DAED4F /* SecondaryDisplayMode.swift */; };
-		908AF3BC3D293B98209BBE20 /* FocusOverlayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75116388530A39116C2BC278 /* FocusOverlayController.swift */; };
-		B0BCB10C6FDF8B2CFB33D44A /* DefaultFileNameFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF6FCE4736799234CE18FF6 /* DefaultFileNameFormat.swift */; };
+		010AC7A4A09D55B6CD08E3E7 /* MarkdownFileName.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2414FC7BFB106AC9CF76B5 /* MarkdownFileName.swift */; };
+		26CD30F63DD79C2041CC5A61 /* WritingJailWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A127019C7431ED9E1F91A26 /* WritingJailWindowController.swift */; };
+		39DB11ADAE355DD24CAE53D0 /* WritingJailApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1D28E46DF9C6AF895FDDA21 /* WritingJailApp.swift */; };
+		3F5EC134A2323234138EC38B /* WritingJailCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 86A0CF3DB87888B7282FE165 /* WritingJailCore.framework */; };
+		4FF9149DC44CA100C3FBCCCD /* WritingJailCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 86A0CF3DB87888B7282FE165 /* WritingJailCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		56115B3F0BB561878DB0F1D0 /* EditorTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F145BB48D0B3621329630F24 /* EditorTheme.swift */; };
+		5B40AF002F86AE540482937F /* WritingJailCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 86A0CF3DB87888B7282FE165 /* WritingJailCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5B83413EB04268C2901DD6BA /* SecurityScopedResourceAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5646477610F86749239CE1CE /* SecurityScopedResourceAccess.swift */; };
+		6046A5E6AC9602DB151F8938 /* RecoveryDraftStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 610E8DDB4C572DC0636A5E2D /* RecoveryDraftStore.swift */; };
+		81CC32DE4D237F07FC612061 /* SecondaryDisplayMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25BC04841F687B82491BB983 /* SecondaryDisplayMode.swift */; };
+		854F5F8E9B087A6F8D99D209 /* EditorTextModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 509F3C239D222D7ABCC92AB5 /* EditorTextModel.swift */; };
+		972D53691602BDCA22B903A0 /* FocusSessionDuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC5C140C33E72A7FC62769B7 /* FocusSessionDuration.swift */; };
+		9BF08ED9BEE7F5666CF170CA /* FocusKeyboardBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D05D7C9D2D419028A64BD6 /* FocusKeyboardBlocker.swift */; };
+		B030E4DCD2A3B83374CC28A9 /* WritingJailAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F333ED2B162FBB2DB03618 /* WritingJailAppDelegate.swift */; };
 		B7739D0D52C6106C6D3E84A4 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = B7924AB209BE1908A75AA2D2 /* AppIcon.icns */; };
+		BDD7C23F5BB9C3231BC7990C /* DefaultFileNameFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = B13D16DA6EF346A399D42C80 /* DefaultFileNameFormat.swift */; };
+		C2D0BEC5066C2F7BD2381FCA /* WritingJailCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 550895D464BBB3C677B945FD /* WritingJailCoreTests.swift */; };
 		C34EF4B409D57A259FB16525 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F7E17B90BA9D7DF30B4CBCB8 /* PrivacyInfo.xcprivacy */; };
-		CAA41904AEC204CD47B739C6 /* MainWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8D84B28AD995D2746E32652 /* MainWindowController.swift */; };
-		D22952FF1482D55CAE20BE0A /* FocusWriterCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 18E29EE837D11178939F07C6 /* FocusWriterCore.framework */; };
-		E04FAB345A61D21EB4EB93B3 /* FocusKeyPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = FADF1616F004E86EBEF5F811 /* FocusKeyPolicy.swift */; };
-		EE891DD6F4BCB675ED4A9D31 /* FocusInputBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F28D3108E3A01D44D76A521 /* FocusInputBlocker.swift */; };
-		EFBC99EFCB5CACE25696B365 /* FocusDuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F1A4048DB303D50D794298C /* FocusDuration.swift */; };
-		F0DDDA5514A542920BF6A214 /* FocusCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0DA1CD4D4CA155B94DC4FC3 /* FocusCoreTests.swift */; };
+		D2EEA51C2CA9660BB2757079 /* FocusKeyboardPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E842C668940980B46782584 /* FocusKeyboardPolicy.swift */; };
+		F58BC826B99DE589C15BA189 /* FocusSessionOverlayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D23DC59E35A38E5056B605C3 /* FocusSessionOverlayController.swift */; };
+		F7557750F514AE55522A1891 /* WritingJailCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 86A0CF3DB87888B7282FE165 /* WritingJailCore.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		6882EE271A3F6D6EF3E56EB9 /* PBXContainerItemProxy */ = {
+		96FBE83DC4D3BE5454A683DA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C7BBBD151E14F853BD5D5AC8 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = DDB6802AB5584A374FE423B7;
-			remoteInfo = FocusWriterCore;
+			remoteGlobalIDString = 3978A32A222C31A51275CC68;
+			remoteInfo = WritingJailCore;
 		};
-		7BE066B2B4685B3712C7E88B /* PBXContainerItemProxy */ = {
+		FE9B3BF5F4775D514508B2F0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C7BBBD151E14F853BD5D5AC8 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = DDB6802AB5584A374FE423B7;
-			remoteInfo = FocusWriterCore;
+			remoteGlobalIDString = 3978A32A222C31A51275CC68;
+			remoteInfo = WritingJailCore;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -54,7 +54,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				5EAB8B76882901922F4291A0 /* FocusWriterCore.framework in Embed Frameworks */,
+				5B40AF002F86AE540482937F /* WritingJailCore.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -65,7 +65,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				6A92DAC08A4B9BBC91EF8793 /* FocusWriterCore.framework in Embed Frameworks */,
+				4FF9149DC44CA100C3FBCCCD /* WritingJailCore.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -73,26 +73,26 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		10CA36C948608C1583F8BFC9 /* ScopedResourceAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScopedResourceAccess.swift; sourceTree = "<group>"; };
-		18E29EE837D11178939F07C6 /* FocusWriterCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FocusWriterCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		1F1A4048DB303D50D794298C /* FocusDuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusDuration.swift; sourceTree = "<group>"; };
-		1F28D3108E3A01D44D76A521 /* FocusInputBlocker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusInputBlocker.swift; sourceTree = "<group>"; };
-		21746E89B9A30BBBF3CA4816 /* FocusWriterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusWriterApp.swift; sourceTree = "<group>"; };
-		21825AE7685C226063DAED4F /* SecondaryDisplayMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondaryDisplayMode.swift; sourceTree = "<group>"; };
-		23308AA44C1DE4141C550849 /* EditorTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorTheme.swift; sourceTree = "<group>"; };
-		4EF6FCE4736799234CE18FF6 /* DefaultFileNameFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultFileNameFormat.swift; sourceTree = "<group>"; };
-		4FD570EA9D9E405A55AADC85 /* MarkdownFileName.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownFileName.swift; sourceTree = "<group>"; };
-		75116388530A39116C2BC278 /* FocusOverlayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusOverlayController.swift; sourceTree = "<group>"; };
-		966405A07620146A529776B0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		0A127019C7431ED9E1F91A26 /* WritingJailWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WritingJailWindowController.swift; sourceTree = "<group>"; };
+		25BC04841F687B82491BB983 /* SecondaryDisplayMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondaryDisplayMode.swift; sourceTree = "<group>"; };
+		3D2414FC7BFB106AC9CF76B5 /* MarkdownFileName.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownFileName.swift; sourceTree = "<group>"; };
+		44F333ED2B162FBB2DB03618 /* WritingJailAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WritingJailAppDelegate.swift; sourceTree = "<group>"; };
+		509F3C239D222D7ABCC92AB5 /* EditorTextModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorTextModel.swift; sourceTree = "<group>"; };
+		550895D464BBB3C677B945FD /* WritingJailCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WritingJailCoreTests.swift; sourceTree = "<group>"; };
+		5646477610F86749239CE1CE /* SecurityScopedResourceAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityScopedResourceAccess.swift; sourceTree = "<group>"; };
+		610E8DDB4C572DC0636A5E2D /* RecoveryDraftStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryDraftStore.swift; sourceTree = "<group>"; };
+		68D05D7C9D2D419028A64BD6 /* FocusKeyboardBlocker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusKeyboardBlocker.swift; sourceTree = "<group>"; };
+		7E842C668940980B46782584 /* FocusKeyboardPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusKeyboardPolicy.swift; sourceTree = "<group>"; };
+		86A0CF3DB87888B7282FE165 /* WritingJailCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WritingJailCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9EC042BED328D6397451C23E /* WritingJailTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WritingJailTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AC5C140C33E72A7FC62769B7 /* FocusSessionDuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSessionDuration.swift; sourceTree = "<group>"; };
+		B13D16DA6EF346A399D42C80 /* DefaultFileNameFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultFileNameFormat.swift; sourceTree = "<group>"; };
 		B7924AB209BE1908A75AA2D2 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
-		BF9673B9C33C8D5AAA3140E3 /* EditorDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorDocument.swift; sourceTree = "<group>"; };
-		E0DA1CD4D4CA155B94DC4FC3 /* FocusCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusCoreTests.swift; sourceTree = "<group>"; };
-		ECD87A2765AEFF1BACB7CE24 /* DraftStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftStore.swift; sourceTree = "<group>"; };
+		D23DC59E35A38E5056B605C3 /* FocusSessionOverlayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusSessionOverlayController.swift; sourceTree = "<group>"; };
+		F145BB48D0B3621329630F24 /* EditorTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorTheme.swift; sourceTree = "<group>"; };
+		F1D28E46DF9C6AF895FDDA21 /* WritingJailApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WritingJailApp.swift; sourceTree = "<group>"; };
 		F51CF46957111EEB280305DA /* WritingJail.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WritingJail.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F7E17B90BA9D7DF30B4CBCB8 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		F8D84B28AD995D2746E32652 /* MainWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowController.swift; sourceTree = "<group>"; };
-		FADF1616F004E86EBEF5F811 /* FocusKeyPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusKeyPolicy.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,7 +100,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				78C9A2A66A0CD309E0440708 /* FocusWriterCore.framework in Frameworks */,
+				F7557750F514AE55522A1891 /* WritingJailCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -108,7 +108,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D22952FF1482D55CAE20BE0A /* FocusWriterCore.framework in Frameworks */,
+				3F5EC134A2323234138EC38B /* WritingJailCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -123,11 +123,19 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		145B6876F24DA1AC341F8853 /* WritingJailCoreTests */ = {
+			isa = PBXGroup;
+			children = (
+				550895D464BBB3C677B945FD /* WritingJailCoreTests.swift */,
+			);
+			path = WritingJailCoreTests;
+			sourceTree = "<group>";
+		};
 		2066B41253C78C62A281F7CE /* src */ = {
 			isa = PBXGroup;
 			children = (
-				8E6E4231CF2685FA2E460C3D /* FocusWriter */,
-				A5522B915B1250EB14CA4BF7 /* FocusWriterCore */,
+				874C99D70BB90824C8B7C9C2 /* WritingJail */,
+				983A8CC5C30CCECED03062CD /* WritingJailCore */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -143,56 +151,48 @@
 			);
 			sourceTree = "<group>";
 		};
-		57B15117EE925FC597E75D34 /* FocusWriterCoreTests */ = {
-			isa = PBXGroup;
-			children = (
-				E0DA1CD4D4CA155B94DC4FC3 /* FocusCoreTests.swift */,
-			);
-			path = FocusWriterCoreTests;
-			sourceTree = "<group>";
-		};
 		6930A30FA889EC00DDD9146E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				18E29EE837D11178939F07C6 /* FocusWriterCore.framework */,
 				F51CF46957111EEB280305DA /* WritingJail.app */,
+				86A0CF3DB87888B7282FE165 /* WritingJailCore.framework */,
 				9EC042BED328D6397451C23E /* WritingJailTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		8E6E4231CF2685FA2E460C3D /* FocusWriter */ = {
+		874C99D70BB90824C8B7C9C2 /* WritingJail */ = {
 			isa = PBXGroup;
 			children = (
-				966405A07620146A529776B0 /* AppDelegate.swift */,
-				ECD87A2765AEFF1BACB7CE24 /* DraftStore.swift */,
-				BF9673B9C33C8D5AAA3140E3 /* EditorDocument.swift */,
-				23308AA44C1DE4141C550849 /* EditorTheme.swift */,
-				1F28D3108E3A01D44D76A521 /* FocusInputBlocker.swift */,
-				75116388530A39116C2BC278 /* FocusOverlayController.swift */,
-				21746E89B9A30BBBF3CA4816 /* FocusWriterApp.swift */,
-				F8D84B28AD995D2746E32652 /* MainWindowController.swift */,
-				10CA36C948608C1583F8BFC9 /* ScopedResourceAccess.swift */,
-				21825AE7685C226063DAED4F /* SecondaryDisplayMode.swift */,
+				509F3C239D222D7ABCC92AB5 /* EditorTextModel.swift */,
+				F145BB48D0B3621329630F24 /* EditorTheme.swift */,
+				68D05D7C9D2D419028A64BD6 /* FocusKeyboardBlocker.swift */,
+				D23DC59E35A38E5056B605C3 /* FocusSessionOverlayController.swift */,
+				610E8DDB4C572DC0636A5E2D /* RecoveryDraftStore.swift */,
+				25BC04841F687B82491BB983 /* SecondaryDisplayMode.swift */,
+				5646477610F86749239CE1CE /* SecurityScopedResourceAccess.swift */,
+				F1D28E46DF9C6AF895FDDA21 /* WritingJailApp.swift */,
+				44F333ED2B162FBB2DB03618 /* WritingJailAppDelegate.swift */,
+				0A127019C7431ED9E1F91A26 /* WritingJailWindowController.swift */,
 			);
-			path = FocusWriter;
+			path = WritingJail;
 			sourceTree = "<group>";
 		};
-		A5522B915B1250EB14CA4BF7 /* FocusWriterCore */ = {
+		983A8CC5C30CCECED03062CD /* WritingJailCore */ = {
 			isa = PBXGroup;
 			children = (
-				4EF6FCE4736799234CE18FF6 /* DefaultFileNameFormat.swift */,
-				1F1A4048DB303D50D794298C /* FocusDuration.swift */,
-				FADF1616F004E86EBEF5F811 /* FocusKeyPolicy.swift */,
-				4FD570EA9D9E405A55AADC85 /* MarkdownFileName.swift */,
+				B13D16DA6EF346A399D42C80 /* DefaultFileNameFormat.swift */,
+				7E842C668940980B46782584 /* FocusKeyboardPolicy.swift */,
+				AC5C140C33E72A7FC62769B7 /* FocusSessionDuration.swift */,
+				3D2414FC7BFB106AC9CF76B5 /* MarkdownFileName.swift */,
 			);
-			path = FocusWriterCore;
+			path = WritingJailCore;
 			sourceTree = "<group>";
 		};
 		AFEBE64330BC18BD3CEE8A98 /* tests */ = {
 			isa = PBXGroup;
 			children = (
-				57B15117EE925FC597E75D34 /* FocusWriterCoreTests */,
+				145B6876F24DA1AC341F8853 /* WritingJailCoreTests */,
 			);
 			path = tests;
 			sourceTree = "<group>";
@@ -220,7 +220,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				CD5D55C90B814093156ACB71 /* PBXTargetDependency */,
+				29F5499E260124D428292DA2 /* PBXTargetDependency */,
 			);
 			name = WritingJail;
 			packageProductDependencies = (
@@ -228,6 +228,23 @@
 			productName = WritingJail;
 			productReference = F51CF46957111EEB280305DA /* WritingJail.app */;
 			productType = "com.apple.product-type.application";
+		};
+		3978A32A222C31A51275CC68 /* WritingJailCore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A36AB17DE2FE4E39861D7E2E /* Build configuration list for PBXNativeTarget "WritingJailCore" */;
+			buildPhases = (
+				706086E0D5007927C812528F /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WritingJailCore;
+			packageProductDependencies = (
+			);
+			productName = WritingJailCore;
+			productReference = 86A0CF3DB87888B7282FE165 /* WritingJailCore.framework */;
+			productType = "com.apple.product-type.framework";
 		};
 		C9DF91C7CCDC07C44FB5F8C1 /* WritingJailTests */ = {
 			isa = PBXNativeTarget;
@@ -240,7 +257,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				F241F920F03753D445378D4C /* PBXTargetDependency */,
+				172AE68E540EA3B9967AE559 /* PBXTargetDependency */,
 			);
 			name = WritingJailTests;
 			packageProductDependencies = (
@@ -248,23 +265,6 @@
 			productName = WritingJailTests;
 			productReference = 9EC042BED328D6397451C23E /* WritingJailTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		DDB6802AB5584A374FE423B7 /* FocusWriterCore */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 82A1974DF855404972484644 /* Build configuration list for PBXNativeTarget "FocusWriterCore" */;
-			buildPhases = (
-				3BBB690CD9C41D6D15CF09BB /* Sources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = FocusWriterCore;
-			packageProductDependencies = (
-			);
-			productName = FocusWriterCore;
-			productReference = 18E29EE837D11178939F07C6 /* FocusWriterCore.framework */;
-			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
 
@@ -279,11 +279,11 @@
 						DevelopmentTeam = Y5E45NE7R9;
 						ProvisioningStyle = Automatic;
 					};
-					C9DF91C7CCDC07C44FB5F8C1 = {
+					3978A32A222C31A51275CC68 = {
 						DevelopmentTeam = Y5E45NE7R9;
 						ProvisioningStyle = Automatic;
 					};
-					DDB6802AB5584A374FE423B7 = {
+					C9DF91C7CCDC07C44FB5F8C1 = {
 						DevelopmentTeam = Y5E45NE7R9;
 						ProvisioningStyle = Automatic;
 					};
@@ -303,7 +303,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				DDB6802AB5584A374FE423B7 /* FocusWriterCore */,
+				3978A32A222C31A51275CC68 /* WritingJailCore */,
 				1CC035A3417A338DB8181969 /* WritingJail */,
 				C9DF91C7CCDC07C44FB5F8C1 /* WritingJailTests */,
 			);
@@ -327,27 +327,27 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				40430DFE127C62C5B92C7851 /* AppDelegate.swift in Sources */,
-				72D18772AA09ED87D09B447A /* DraftStore.swift in Sources */,
-				651F14970FBBA28C3E902CEB /* EditorDocument.swift in Sources */,
-				401C8F20D202CCF3E6669470 /* EditorTheme.swift in Sources */,
-				EE891DD6F4BCB675ED4A9D31 /* FocusInputBlocker.swift in Sources */,
-				908AF3BC3D293B98209BBE20 /* FocusOverlayController.swift in Sources */,
-				08EF0BDB02CF1CD6424EA0CA /* FocusWriterApp.swift in Sources */,
-				CAA41904AEC204CD47B739C6 /* MainWindowController.swift in Sources */,
-				6A977DD45C97050DDE29761C /* ScopedResourceAccess.swift in Sources */,
-				868A0F97EA9E28E3ED1C5CDA /* SecondaryDisplayMode.swift in Sources */,
+				854F5F8E9B087A6F8D99D209 /* EditorTextModel.swift in Sources */,
+				56115B3F0BB561878DB0F1D0 /* EditorTheme.swift in Sources */,
+				9BF08ED9BEE7F5666CF170CA /* FocusKeyboardBlocker.swift in Sources */,
+				F58BC826B99DE589C15BA189 /* FocusSessionOverlayController.swift in Sources */,
+				6046A5E6AC9602DB151F8938 /* RecoveryDraftStore.swift in Sources */,
+				81CC32DE4D237F07FC612061 /* SecondaryDisplayMode.swift in Sources */,
+				5B83413EB04268C2901DD6BA /* SecurityScopedResourceAccess.swift in Sources */,
+				39DB11ADAE355DD24CAE53D0 /* WritingJailApp.swift in Sources */,
+				B030E4DCD2A3B83374CC28A9 /* WritingJailAppDelegate.swift in Sources */,
+				26CD30F63DD79C2041CC5A61 /* WritingJailWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		3BBB690CD9C41D6D15CF09BB /* Sources */ = {
+		706086E0D5007927C812528F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B0BCB10C6FDF8B2CFB33D44A /* DefaultFileNameFormat.swift in Sources */,
-				EFBC99EFCB5CACE25696B365 /* FocusDuration.swift in Sources */,
-				E04FAB345A61D21EB4EB93B3 /* FocusKeyPolicy.swift in Sources */,
-				532C74B41544A0BF335018AB /* MarkdownFileName.swift in Sources */,
+				BDD7C23F5BB9C3231BC7990C /* DefaultFileNameFormat.swift in Sources */,
+				D2EEA51C2CA9660BB2757079 /* FocusKeyboardPolicy.swift in Sources */,
+				972D53691602BDCA22B903A0 /* FocusSessionDuration.swift in Sources */,
+				010AC7A4A09D55B6CD08E3E7 /* MarkdownFileName.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -355,22 +355,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F0DDDA5514A542920BF6A214 /* FocusCoreTests.swift in Sources */,
+				C2D0BEC5066C2F7BD2381FCA /* WritingJailCoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		CD5D55C90B814093156ACB71 /* PBXTargetDependency */ = {
+		172AE68E540EA3B9967AE559 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = DDB6802AB5584A374FE423B7 /* FocusWriterCore */;
-			targetProxy = 6882EE271A3F6D6EF3E56EB9 /* PBXContainerItemProxy */;
+			target = 3978A32A222C31A51275CC68 /* WritingJailCore */;
+			targetProxy = FE9B3BF5F4775D514508B2F0 /* PBXContainerItemProxy */;
 		};
-		F241F920F03753D445378D4C /* PBXTargetDependency */ = {
+		29F5499E260124D428292DA2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = DDB6802AB5584A374FE423B7 /* FocusWriterCore */;
-			targetProxy = 7BE066B2B4685B3712C7E88B /* PBXContainerItemProxy */;
+			target = 3978A32A222C31A51275CC68 /* WritingJailCore */;
+			targetProxy = 96FBE83DC4D3BE5454A683DA /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -462,7 +462,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Resources/WritingJail.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
@@ -543,7 +543,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Resources/WritingJail.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
@@ -559,30 +559,6 @@
 				SDKROOT = macosx;
 			};
 			name = Debug;
-		};
-		B47E90093B8E38AE0FC58748 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "";
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				GENERATE_INFOPLIST_FILE = YES;
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.chativy.writingjail.core;
-				PRODUCT_NAME = FocusWriterCore;
-				SDKROOT = macosx;
-				SKIP_INSTALL = YES;
-				VERSIONING_SYSTEM = "apple-generic";
-			};
-			name = Release;
 		};
 		CB5FF6B0189DEBA5F79F5F63 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -600,7 +576,7 @@
 			};
 			name = Debug;
 		};
-		F2195E6E2837A002D74A8224 /* Debug */ = {
+		D04BBC5AE548EAEEFEA796C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "";
@@ -617,12 +593,36 @@
 					"@executable_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.chativy.writingjail.core;
-				PRODUCT_NAME = FocusWriterCore;
+				PRODUCT_NAME = WritingJailCore;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
+		};
+		FD25175595B6A26502B494C9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.chativy.writingjail.core;
+				PRODUCT_NAME = WritingJailCore;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
@@ -645,11 +645,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		82A1974DF855404972484644 /* Build configuration list for PBXNativeTarget "FocusWriterCore" */ = {
+		A36AB17DE2FE4E39861D7E2E /* Build configuration list for PBXNativeTarget "WritingJailCore" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				F2195E6E2837A002D74A8224 /* Debug */,
-				B47E90093B8E38AE0FC58748 /* Release */,
+				D04BBC5AE548EAEEFEA796C9 /* Debug */,
+				FD25175595B6A26502B494C9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
