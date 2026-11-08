@@ -4,7 +4,7 @@ enum EditorTheme: String {
     case dark
     case ivory
 
-    static var saved: EditorTheme {
+    static var stored: EditorTheme {
         UserDefaults.standard.string(forKey: "editorTheme")
             .flatMap(EditorTheme.init(rawValue:))
             ?? .dark
@@ -19,7 +19,7 @@ enum EditorTheme: String {
         }
     }
 
-    var switchButtonTitle: String {
+    var toggleButtonTitle: String {
         switch self {
         case .dark:
             return "Ivory Mode"
@@ -28,7 +28,7 @@ enum EditorTheme: String {
         }
     }
 
-    var nsAppearance: NSAppearance.Name {
+    var systemAppearance: NSAppearance.Name {
         switch self {
         case .dark:
             return .darkAqua
@@ -37,7 +37,7 @@ enum EditorTheme: String {
         }
     }
 
-    var toggled: EditorTheme {
+    var opposite: EditorTheme {
         self == .dark ? .ivory : .dark
     }
 }

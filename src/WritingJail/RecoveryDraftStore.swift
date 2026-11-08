@@ -1,7 +1,7 @@
 import Foundation
 
-final class DraftStore {
-    private let fileURL: URL
+final class RecoveryDraftStore {
+    private let draftFileURL: URL
 
     init() {
         let fileManager = FileManager.default
@@ -9,35 +9,35 @@ final class DraftStore {
             for: .applicationSupportDirectory,
             in: .userDomainMask
         ).first!
-        let appFolder = baseURL
+        let writingJailFolder = baseURL
             .appendingPathComponent("WritingJail", isDirectory: true)
-        fileURL = appFolder
+        draftFileURL = writingJailFolder
             .appendingPathComponent("draft.txt", isDirectory: false)
 
         let legacyDraftURL = baseURL
             .appendingPathComponent("FocusWriter", isDirectory: true)
             .appendingPathComponent("draft.txt", isDirectory: false)
-        if !fileManager.fileExists(atPath: fileURL.path),
+        if !fileManager.fileExists(atPath: draftFileURL.path),
             fileManager.fileExists(atPath: legacyDraftURL.path) {
             try? fileManager.createDirectory(
-                at: appFolder,
+                at: writingJailFolder,
                 withIntermediateDirectories: true
             )
-            try? fileManager.copyItem(at: legacyDraftURL, to: fileURL)
+            try? fileManager.copyItem(at: legacyDraftURL, to: draftFileURL)
         }
     }
 
-    func load() -> String {
-        (try? String(contentsOf: fileURL, encoding: .utf8)) ?? ""
+    func loadText() -> String {
+        (try? String(contentsOf: draftFileURL, encoding: .utf8)) ?? ""
     }
 
-    func save(_ text: String) {
+    func saveText(_ text: String) {
         do {
             try FileManager.default.createDirectory(
-                at: fileURL.deletingLastPathComponent(),
+                at: draftFileURL.deletingLastPathComponent(),
                 withIntermediateDirectories: true
             )
-            try text.write(to: fileURL, atomically: true, encoding: .utf8)
+            try text.write(to: draftFileURL, atomically: true, encoding: .utf8)
         } catch {
             NSLog("WritingJail could not save the draft: %@", error.localizedDescription)
         }

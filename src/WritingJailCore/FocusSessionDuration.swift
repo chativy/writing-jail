@@ -1,9 +1,9 @@
 import Foundation
 
-public struct FocusDuration: Equatable, Sendable {
-    public let seconds: TimeInterval
+public struct FocusSessionDuration: Equatable, Sendable {
+    public let totalSeconds: TimeInterval
 
-    public static var minuteOptions: [Int] {
+    public static var availableMinuteOptions: [Int] {
         Array(stride(from: 5, through: 60, by: 5))
             + Array(stride(from: 70, through: 110, by: 10))
             + Array(stride(from: 120, through: 1_440, by: 60))
@@ -47,14 +47,14 @@ public struct FocusDuration: Equatable, Sendable {
         guard totalSeconds > 0, totalSeconds <= 24 * 60 * 60 else {
             return nil
         }
-        seconds = TimeInterval(totalSeconds)
+        self.totalSeconds = TimeInterval(totalSeconds)
     }
 
-    public var displayMinutes: Int {
-        max(1, Int(seconds / 60))
+    public var wholeMinutes: Int {
+        max(1, Int(totalSeconds / 60))
     }
 
-    public static func label(minutes: Int) -> String {
+    public static func displayLabel(forMinutes minutes: Int) -> String {
         let hours = minutes / 60
         let remainingMinutes = minutes % 60
         if hours == 0 {

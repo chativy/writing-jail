@@ -1,12 +1,12 @@
 import CoreGraphics
 import Foundation
 
-public enum FocusKeyPolicy {
+public enum FocusKeyboardPolicy {
     public static let emergencyHoldSeconds: TimeInterval = 5
-    public static let systemDefinedEventType: CGEventType = .init(rawValue: 14)!
+    public static let systemDefinedCGEventType: CGEventType = .init(rawValue: 14)!
 
     // Copy, paste, cut, select all, undo/redo, and zoom remain available.
-    private static let allowedCommandKeys: Set<CGKeyCode> = [
+    private static let allowedCommandKeyCodes: Set<CGKeyCode> = [
         0,   // A
         6,   // Z
         7,   // X
@@ -18,16 +18,16 @@ public enum FocusKeyPolicy {
         78   // keypad -
     ]
 
-    private static let functionKeys: Set<CGKeyCode> = [
+    private static let blockedFunctionKeyCodes: Set<CGKeyCode> = [
         122, 120, 99, 118, 96, 97, 98, 100, 101, 109, 103, 111
     ]
 
-    public static func shouldBlock(
+    public static func shouldBlockKeyboardEvent(
         type: CGEventType,
         keyCode: CGKeyCode,
         flags: CGEventFlags
     ) -> Bool {
-        if type == systemDefinedEventType {
+        if type == systemDefinedCGEventType {
             return true
         }
         guard type == .keyDown else {
@@ -35,14 +35,14 @@ public enum FocusKeyPolicy {
         }
 
         if flags.contains(.maskCommand) {
-            return !allowedCommandKeys.contains(keyCode)
+            return !allowedCommandKeyCodes.contains(keyCode)
         }
 
         let controlArrow = flags.contains(.maskControl) && (123...126).contains(keyCode)
-        return controlArrow || functionKeys.contains(keyCode)
+        return controlArrow || blockedFunctionKeyCodes.contains(keyCode)
     }
 
-    public static func isEmergencyChord(
+    public static func isEmergencyExitChord(
         type: CGEventType,
         keyCode: CGKeyCode,
         flags: CGEventFlags

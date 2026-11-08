@@ -6,7 +6,7 @@ enum SecondaryDisplayMode: String, CaseIterable {
     case customImage
     case solidColor
 
-    var title: String {
+    var displayName: String {
         switch self {
         case .mirrorEditor:
             return "Mirror Editor"

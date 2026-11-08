@@ -1,17 +1,17 @@
 import Foundation
 
-final class ScopedResourceAccess {
-    private var activeURL: URL?
-    private var isAccessing = false
+final class SecurityScopedResourceAccess {
+    private var retainedURL: URL?
+    private var hasSecurityScope = false
 
-    var url: URL? {
-        activeURL
+    var activeResourceURL: URL? {
+        retainedURL
     }
 
-    func retain(_ url: URL, bookmarkKey: String? = nil) {
-        release()
-        activeURL = url
-        isAccessing = url.startAccessingSecurityScopedResource()
+    func retainAccess(to url: URL, bookmarkKey: String? = nil) {
+        releaseAccess()
+        retainedURL = url
+        hasSecurityScope = url.startAccessingSecurityScopedResource()
 
         guard let bookmarkKey,
             let bookmarkData = try? url.bookmarkData(
@@ -25,8 +25,8 @@ final class ScopedResourceAccess {
         UserDefaults.standard.set(bookmarkData, forKey: bookmarkKey)
     }
 
-    func restore(bookmarkKey: String, fallbackPathKey: String) -> URL? {
-        release()
+    func restoreAccess(bookmarkKey: String, fallbackPathKey: String) -> URL? {
+        releaseAccess()
 
         if let bookmarkData = UserDefaults.standard.data(forKey: bookmarkKey) {
             var isStale = false
@@ -36,8 +36,8 @@ final class ScopedResourceAccess {
                 relativeTo: nil,
                 bookmarkDataIsStale: &isStale
             ) {
-                activeURL = resolvedURL
-                isAccessing = resolvedURL.startAccessingSecurityScopedResource()
+                retainedURL = resolvedURL
+                hasSecurityScope = resolvedURL.startAccessingSecurityScopedResource()
                 return resolvedURL
             }
         }
@@ -48,16 +48,16 @@ final class ScopedResourceAccess {
             return nil
         }
         let fallbackURL = URL(fileURLWithPath: savedPath)
-        activeURL = fallbackURL
-        isAccessing = fallbackURL.startAccessingSecurityScopedResource()
+        retainedURL = fallbackURL
+        hasSecurityScope = fallbackURL.startAccessingSecurityScopedResource()
         return fallbackURL
     }
 
-    func release() {
-        if isAccessing {
-            activeURL?.stopAccessingSecurityScopedResource()
+    func releaseAccess() {
+        if hasSecurityScope {
+            retainedURL?.stopAccessingSecurityScopedResource()
         }
-        activeURL = nil
-        isAccessing = false
+        retainedURL = nil
+        hasSecurityScope = false
     }
 }

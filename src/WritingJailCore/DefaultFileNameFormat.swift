@@ -1,9 +1,9 @@
 import Foundation
 
 public enum DefaultFileNameFormat {
-    public static let defaultFormat = "focus-{date}.md"
+    public static let defaultTemplate = "focus-{date}.md"
 
-    public static func fileName(
+    public static func makeFilename(
         format: String,
         date: Date,
         timeZone: TimeZone = .current
@@ -52,9 +52,9 @@ public enum DefaultFileNameFormat {
             result = result.replacingOccurrences(of: token, with: value)
         }
 
-        return MarkdownFileName.normalized(
+        return MarkdownFileName.normalizedFilename(
             result,
-            fallback: defaultFormat
+            fallback: defaultTemplate
         )
     }
 }
