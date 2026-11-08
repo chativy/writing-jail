@@ -8,13 +8,13 @@ final class SecurityScopedResourceAccess {
         retainedURL
     }
 
-    func retainAccess(to url: URL, bookmarkKey: String? = nil) {
+    func retainAccess(to resourceURL: URL, bookmarkKey: String? = nil) {
         releaseAccess()
-        retainedURL = url
-        hasSecurityScope = url.startAccessingSecurityScopedResource()
+        retainedURL = resourceURL
+        hasSecurityScope = resourceURL.startAccessingSecurityScopedResource()
 
         guard let bookmarkKey,
-            let bookmarkData = try? url.bookmarkData(
+            let bookmarkData = try? resourceURL.bookmarkData(
                 options: .withSecurityScope,
                 includingResourceValuesForKeys: nil,
                 relativeTo: nil
@@ -42,15 +42,16 @@ final class SecurityScopedResourceAccess {
             }
         }
 
-        guard let savedPath = UserDefaults.standard.string(
+        guard let storedPath = UserDefaults.standard.string(
             forKey: fallbackPathKey
         ) else {
             return nil
         }
-        let fallbackURL = URL(fileURLWithPath: savedPath)
-        retainedURL = fallbackURL
-        hasSecurityScope = fallbackURL.startAccessingSecurityScopedResource()
-        return fallbackURL
+        let fallbackResourceURL = URL(fileURLWithPath: storedPath)
+        retainedURL = fallbackResourceURL
+        hasSecurityScope =
+            fallbackResourceURL.startAccessingSecurityScopedResource()
+        return fallbackResourceURL
     }
 
     func releaseAccess() {

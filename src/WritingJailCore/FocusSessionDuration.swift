@@ -10,18 +10,21 @@ public struct FocusSessionDuration: Equatable, Sendable {
     }
 
     public init?(input: String) {
-        let value = input
+        let normalizedInput = input
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
 
-        guard !value.isEmpty else {
+        guard !normalizedInput.isEmpty else {
             return nil
         }
 
         let totalSeconds: Int
 
-        if value.contains(":") {
-            let parts = value.split(separator: ":", omittingEmptySubsequences: false)
+        if normalizedInput.contains(":") {
+            let parts = normalizedInput.split(
+                separator: ":",
+                omittingEmptySubsequences: false
+            )
             guard
                 parts.count == 2,
                 let hours = Int(parts[0]),
@@ -32,11 +35,11 @@ public struct FocusSessionDuration: Equatable, Sendable {
             }
             totalSeconds = (hours * 60 + minutes) * 60
         } else {
-            let hasHourSuffix = value.hasSuffix("h")
-            let hasMinuteSuffix = value.hasSuffix("m")
+            let hasHourSuffix = normalizedInput.hasSuffix("h")
+            let hasMinuteSuffix = normalizedInput.hasSuffix("m")
             let numberPart = (hasHourSuffix || hasMinuteSuffix)
-                ? String(value.dropLast())
-                : value
+                ? String(normalizedInput.dropLast())
+                : normalizedInput
 
             guard let number = Int(numberPart) else {
                 return nil

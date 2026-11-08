@@ -62,25 +62,25 @@ final class WritingJailCoreTests: XCTestCase {
         )
     }
 
-    func testMarkdownFileNames() {
+    func testMarkdownFilenames() {
         XCTAssertEqual(
-            MarkdownFileName.normalizedFilename("notes", fallback: "fallback.md"),
+            MarkdownFilename.normalizedFilename("notes", fallback: "fallback.md"),
             "notes.md"
         )
         XCTAssertEqual(
-            MarkdownFileName.normalizedFilename("notes.txt", fallback: "fallback.md"),
+            MarkdownFilename.normalizedFilename("notes.txt", fallback: "fallback.md"),
             "notes.md"
         )
         XCTAssertEqual(
-            MarkdownFileName.normalizedFilename("", fallback: "fallback.md"),
+            MarkdownFilename.normalizedFilename("", fallback: "fallback.md"),
             "fallback.md"
         )
         XCTAssertNil(
-            MarkdownFileName.normalizedFilename("../notes", fallback: "fallback.md")
+            MarkdownFilename.normalizedFilename("../notes", fallback: "fallback.md")
         )
     }
 
-    func testDefaultFileNameFormats() {
+    func testDefaultFilenameTemplates() {
         let date = DateComponents(
             calendar: Calendar(identifier: .gregorian),
             timeZone: TimeZone(secondsFromGMT: 0),
@@ -94,38 +94,38 @@ final class WritingJailCoreTests: XCTestCase {
         let timeZone = TimeZone(secondsFromGMT: 0)!
 
         XCTAssertEqual(
-            DefaultFileNameFormat.makeFilename(
-                format: "focus-{date}",
+            DefaultFilenameTemplate.makeFilename(
+                template: "focus-{date}",
                 date: date,
                 timeZone: timeZone
             ),
             "focus-2026-11-08.md"
         )
         XCTAssertEqual(
-            DefaultFileNameFormat.makeFilename(
-                format: "{yyyy}-{MM}-{dd}_{HH}-{mm}-{ss}",
+            DefaultFilenameTemplate.makeFilename(
+                template: "{yyyy}-{MM}-{dd}_{HH}-{mm}-{ss}",
                 date: date,
                 timeZone: timeZone
             ),
             "2026-11-08_09-07-05.md"
         )
         XCTAssertEqual(
-            DefaultFileNameFormat.makeFilename(
-                format: "entry-{datetime}.txt",
+            DefaultFilenameTemplate.makeFilename(
+                template: "entry-{datetime}.txt",
                 date: date,
                 timeZone: timeZone
             ),
             "entry-2026-11-08-09-07-05.md"
         )
         XCTAssertNil(
-            DefaultFileNameFormat.makeFilename(
-                format: "   ",
+            DefaultFilenameTemplate.makeFilename(
+                template: "   ",
                 date: date
             )
         )
         XCTAssertNil(
-            DefaultFileNameFormat.makeFilename(
-                format: "../{date}",
+            DefaultFilenameTemplate.makeFilename(
+                template: "../{date}",
                 date: date
             )
         )

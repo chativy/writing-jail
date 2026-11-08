@@ -38,8 +38,9 @@ public enum FocusKeyboardPolicy {
             return !allowedCommandKeyCodes.contains(keyCode)
         }
 
-        let controlArrow = flags.contains(.maskControl) && (123...126).contains(keyCode)
-        return controlArrow || blockedFunctionKeyCodes.contains(keyCode)
+        let isControlArrowShortcut =
+            flags.contains(.maskControl) && (123...126).contains(keyCode)
+        return isControlArrowShortcut || blockedFunctionKeyCodes.contains(keyCode)
     }
 
     public static func isEmergencyExitChord(

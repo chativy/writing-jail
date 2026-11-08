@@ -1,31 +1,33 @@
 import Foundation
 
-public enum DefaultFileNameFormat {
+public enum DefaultFilenameTemplate {
     public static let defaultTemplate = "focus-{date}.md"
 
     public static func makeFilename(
-        format: String,
+        template: String,
         date: Date,
         timeZone: TimeZone = .current
     ) -> String? {
-        let trimmed = format.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else {
+        let trimmedTemplate = template.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+        guard !trimmedTemplate.isEmpty else {
             return nil
         }
 
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = timeZone
-        let components = calendar.dateComponents(
+        let dateComponents = calendar.dateComponents(
             [.year, .month, .day, .hour, .minute, .second],
             from: date
         )
         guard
-            let year = components.year,
-            let month = components.month,
-            let day = components.day,
-            let hour = components.hour,
-            let minute = components.minute,
-            let second = components.second
+            let year = dateComponents.year,
+            let month = dateComponents.month,
+            let day = dateComponents.day,
+            let hour = dateComponents.hour,
+            let minute = dateComponents.minute,
+            let second = dateComponents.second
         else {
             return nil
         }
@@ -36,7 +38,7 @@ public enum DefaultFileNameFormat {
         let hourText = String(format: "%02d", hour)
         let minuteText = String(format: "%02d", minute)
         let secondText = String(format: "%02d", second)
-        var result = trimmed
+        var expandedTemplate = trimmedTemplate
         let replacements = [
             ("{datetime}", "\(yearText)-\(monthText)-\(dayText)-\(hourText)-\(minuteText)-\(secondText)"),
             ("{date}", "\(yearText)-\(monthText)-\(dayText)"),
@@ -48,12 +50,15 @@ public enum DefaultFileNameFormat {
             ("{mm}", minuteText),
             ("{ss}", secondText)
         ]
-        for (token, value) in replacements {
-            result = result.replacingOccurrences(of: token, with: value)
+        for (token, replacement) in replacements {
+            expandedTemplate = expandedTemplate.replacingOccurrences(
+                of: token,
+                with: replacement
+            )
         }
 
-        return MarkdownFileName.normalizedFilename(
-            result,
+        return MarkdownFilename.normalizedFilename(
+            expandedTemplate,
             fallback: defaultTemplate
         )
     }

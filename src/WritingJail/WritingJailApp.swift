@@ -4,36 +4,12 @@ import AppKit
 enum WritingJailApp {
     @MainActor
     static func main() {
-        migrateLegacySettings()
+        LegacySettingsMigrator.migrate()
 
         let application = NSApplication.shared
-        let delegate = WritingJailAppDelegate()
-        application.delegate = delegate
+        let appDelegate = WritingJailAppDelegate()
+        application.delegate = appDelegate
         application.setActivationPolicy(.regular)
         application.run()
-    }
-
-    private static func migrateLegacySettings() {
-        let legacyBundleID = "local.focuswriter.app"
-        guard let legacyValues = UserDefaults.standard.persistentDomain(
-            forName: legacyBundleID
-        ) else {
-            return
-        }
-
-        let keys = [
-            "editorFontSize",
-            "secondaryDisplayMode",
-            "secondaryDisplayImagePath",
-            "secondaryDisplayColor",
-            "lastMarkdownFolder",
-            "editorTheme",
-            "defaultFileNameFormat"
-        ]
-        for key in keys where UserDefaults.standard.object(forKey: key) == nil {
-            if let value = legacyValues[key] {
-                UserDefaults.standard.set(value, forKey: key)
-            }
-        }
     }
 }
