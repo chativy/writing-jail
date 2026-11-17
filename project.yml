@@ -44,7 +44,7 @@ targets:
         PRODUCT_NAME: WritingJail
         MARKETING_VERSION: "1.8"
         CURRENT_PROJECT_VERSION: "16"
-        INFOPLIST_FILE: Release/Info.plist
+        INFOPLIST_FILE: Resources/Info.plist
         CODE_SIGN_ENTITLEMENTS: Resources/WritingJail.entitlements
         ENABLE_APP_SANDBOX: YES
         ENABLE_USER_SELECTED_FILES: readwrite

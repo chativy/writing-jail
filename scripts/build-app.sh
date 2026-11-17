@@ -27,12 +27,17 @@ install -m 755 "$bin_dir/WritingJail" "$app_dir/Contents/MacOS/WritingJail"
 install -m 644 "$repo_dir/Resources/Info.plist" "$app_dir/Contents/Info.plist"
 install -m 644 "$repo_dir/Resources/PrivacyInfo.xcprivacy" "$app_dir/Contents/Resources/PrivacyInfo.xcprivacy"
 rm -f "$app_dir/Contents/Resources/AppIcon.icns"
-install -m 644 "$repo_dir/assets/AppIcon.icns" "$app_dir/Contents/Resources/WritingJailIcon.icns"
+install -m 644 "$repo_dir/assets/AppIcon.icns" "$app_dir/Contents/Resources/AppIcon.icns"
+/usr/libexec/PlistBuddy -c "Set :CFBundleExecutable WritingJail" "$app_dir/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.chativy.writingjail" "$app_dir/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.8" "$app_dir/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion 16" "$app_dir/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :LSMinimumSystemVersion 14.0" "$app_dir/Contents/Info.plist"
 touch "$app_dir"
 codesign \
     --force \
     --sign - \
-    --requirements '=designated => identifier "local.writingjail.app"' \
+    --requirements '=designated => identifier "com.chativy.writingjail"' \
     "$app_dir"
 
 echo "Built $app_dir"

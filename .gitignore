@@ -4,7 +4,5 @@ dist/
 *.xcuserstate
 *.xcuserdata/
 xcuserdata/
-Release/Screenshots/raw/
 build/
 *.xcarchive
-Release/Export/
