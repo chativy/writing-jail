@@ -6,3 +6,8 @@ dist/
 xcuserdata/
 build/
 *.xcarchive
+
+# Private local release artifacts
+AppStore/
+
+
