@@ -58,10 +58,6 @@ final class WritingJailAppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    func applicationDidBecomeActive(_ notification: Notification) {
-        mainWindowController?.refreshAccessibilityPermissionStatus()
-    }
-
     func applicationWillTerminate(_ notification: Notification) {
         mainWindowController?.saveCurrentState()
         mainWindowController?.releaseSecurityScopedResources()
@@ -82,7 +78,9 @@ final class WritingJailAppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminate(
         _ sender: NSApplication
     ) -> NSApplication.TerminateReply {
-        (mainWindowController?.isFocusSessionActive ?? false) ? .terminateCancel : .terminateNow
+        (mainWindowController?.isFocusSessionActive ?? false)
+            ? .terminateCancel
+            : .terminateNow
     }
 
     @objc private func zoomIn(_ sender: Any?) {

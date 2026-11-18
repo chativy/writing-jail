@@ -7,8 +7,9 @@ entirely on your words.
 
 Open an existing Markdown file or create a new one, choose a timed focus
 session, and work in a clean full-screen editor. During the session, Writing
-Jail blocks app switching as fully as macOS allows, while keeping every
-document local and saving automatically every 30 seconds.
+Jail uses standard macOS presentation controls to keep the writing surface in
+front while keeping every document local and saving automatically every 30
+seconds.
 
 ## Run
 
@@ -29,16 +30,8 @@ open WritingJail.xcodeproj
 The application bundle uses `com.chativy.writingjail`, App Sandbox, and
 user-selected file access.
 
-To block system shortcuts such as Cmd-Tab and Mission Control, grant
-Accessibility permission from **System Settings > Privacy & Security >
-Accessibility**, then restart the app.
-
-On macOS 27 and later, macOS requires you to add Writing Jail manually: select
-**Device Control and Data Access**, click **+**, and choose the app bundle.
-
-The permission dialog is not shown automatically. Use **Configure Input
-Blocking** when you want to request it. Without permission, only the in-app
-kiosk lock is applied.
+Writing Jail does not request Accessibility or Input Monitoring permission and
+does not intercept keyboard events.
 
 ## Controls
 
@@ -60,13 +53,14 @@ kiosk lock is applied.
 - Auto-save: every 30 seconds, plus when a session starts or ends
 - Text size: Cmd-Plus and Cmd-Minus
 - Editing: Cmd-A/C/V/X/Z and Shift-Cmd-Z
-- Emergency exit: hold Control-Option-Escape for 5 seconds
+- Focus mode continues until the selected timer reaches zero
 
 The selected Markdown file is saved directly. A recovery draft is also kept at
 `~/Library/Application Support/WritingJail/draft.txt`.
 
-macOS controls such as the power button, forced restart, and login screen
-cannot be blocked by a regular app.
+macOS system controls such as the power button, forced restart, login, and
+other system-level application switching remain outside the control of a
+regular app.
 
 ## License
 

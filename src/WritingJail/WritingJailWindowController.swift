@@ -6,19 +6,16 @@ import UniformTypeIdentifiers
 final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
     private enum EndReason {
         case complete
-        case emergency
     }
 
     private let editorTextModel: EditorTextModel
     private let recoveryDraftStore = RecoveryDraftStore()
-    private let keyboardBlocker = FocusKeyboardBlocker()
     private let documentFileAccess = SecurityScopedResourceAccess()
     private let secondaryImageAccess = SecurityScopedResourceAccess()
     private var editorSurface: EditorSurface!
 
     private let documentLocationLabel = NSTextField(labelWithString: "")
     private let startFocusButton = NSButton()
-    private let accessibilityPermissionButton = NSButton()
     private let themeToggleButton = NSButton()
     private let wordCountLabel = NSTextField(labelWithString: "")
     private let statusLabel = NSTextField(labelWithString: "Auto-saves every 30 seconds")
@@ -84,7 +81,6 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
         buildUserInterface()
         observeDocumentChanges()
         scheduleAutoSaveTimer()
-        refreshAccessibilityPermissionStatus()
     }
 
     required init?(coder: NSCoder) {
@@ -373,20 +369,6 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
         return true
     }
 
-    func refreshAccessibilityPermissionStatus() {
-        guard !isFocusSessionActive else {
-            return
-        }
-
-        if FocusKeyboardBlocker.accessibilityAccessGranted {
-            accessibilityPermissionButton.title = "Input Blocking Ready"
-            accessibilityPermissionButton.isEnabled = false
-        } else {
-            accessibilityPermissionButton.title = "Configure Input Blocking"
-            accessibilityPermissionButton.isEnabled = true
-        }
-    }
-
     private func buildUserInterface() {
         guard let contentView = window?.contentView else {
             return
@@ -397,11 +379,6 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
         let titleLabel = NSTextField(labelWithString: "Writing Jail")
         titleLabel.font = .systemFont(ofSize: 22, weight: .bold)
         primaryTextLabels.append(titleLabel)
-
-        accessibilityPermissionButton.bezelStyle = .inline
-        accessibilityPermissionButton.controlSize = .small
-        accessibilityPermissionButton.target = self
-        accessibilityPermissionButton.action = #selector(configureAccessibilityPermission(_:))
 
         themeToggleButton.bezelStyle = .inline
         themeToggleButton.controlSize = .small
@@ -420,7 +397,6 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
                 titleLabel,
                 flexibleSpacer(),
                 themeToggleButton,
-                accessibilityPermissionButton,
                 startFocusButton
             ]
         )
@@ -931,26 +907,6 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
             return
         }
 
-        if !FocusKeyboardBlocker.accessibilityAccessGranted {
-            let alert = NSAlert()
-            alert.messageText = "Input Blocking Permission Required"
-            alert.informativeText =
-                "Accessibility permission lets Writing Jail block shortcuts such as Cmd-Tab and Mission Control. Without it, only the in-app kiosk lock is applied."
-            alert.addButton(withTitle: "Start Limited Mode")
-            alert.addButton(withTitle: "Configure Input Blocking")
-            alert.addButton(withTitle: "Cancel")
-
-            switch alert.runModal() {
-            case .alertFirstButtonReturn:
-                break
-            case .alertSecondButtonReturn:
-                configureAccessibilityPermission(nil)
-                return
-            default:
-                return
-            }
-        }
-
         beginFocusSession(duration: duration, suggestedDocumentURL: suggestedDocumentURL)
     }
 
@@ -1027,7 +983,7 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
         focusOverlayController = overlay
         overlay.present()
 
-        NSApp.presentationOptions = [
+        var focusPresentationOptions: NSApplication.PresentationOptions = [
             .disableProcessSwitching,
             .hideDock,
             .hideMenuBar,
@@ -1037,15 +993,14 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
             .disableSessionTermination,
             .disableMenuBarTransparency
         ]
+        if #available(macOS 27.0, *) {
+            focusPresentationOptions.insert(
+                .disableScreenCornerInteractions
+            )
+        }
+        NSApp.presentationOptions = focusPresentationOptions
 
-        keyboardBlocker.onEmergencyExit = { [weak self] in
-            self?.endFocusSession(reason: .emergency)
-        }
-        if !keyboardBlocker.startBlocking() {
-            statusLabel.stringValue = "System shortcut blocking could not start"
-        } else {
-            statusLabel.stringValue = "Maximum focus lock active"
-        }
+        statusLabel.stringValue = "Focus mode active"
 
         NSApp.activate(ignoringOtherApps: true)
         window?.orderOut(nil)
@@ -1056,8 +1011,6 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
             return
         }
 
-        keyboardBlocker.stopBlocking()
-        keyboardBlocker.onEmergencyExit = nil
         NSApp.presentationOptions = preFocusPresentationOptions
         saveCurrentState()
 
@@ -1067,40 +1020,10 @@ final class WritingJailWindowController: NSWindowController, NSWindowDelegate {
         focusOverlayController = nil
         isFocusSessionActive = false
 
-        statusLabel.stringValue = reason == .complete
-            ? "Focus complete · Saved"
-            : "Emergency exit · Saved"
+        statusLabel.stringValue = "Focus complete · Saved"
         applyTheme()
-        refreshAccessibilityPermissionStatus()
 
         window?.makeFirstResponder(editorSurface.textView)
-    }
-
-    @objc private func configureAccessibilityPermission(_ sender: Any?) {
-        if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27 {
-            presentManualAccessibilityInstructions()
-            return
-        }
-        FocusKeyboardBlocker.requestAccessibilityAccess()
-        FocusKeyboardBlocker.openAccessibilityPrivacySettings()
-    }
-
-    private func presentManualAccessibilityInstructions() {
-        let appPath = Bundle.main.bundleURL.path
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(appPath, forType: .string)
-
-        let alert = NSAlert()
-        alert.messageText = "Enable Input Blocking"
-        alert.informativeText =
-            "macOS 27 requires Accessibility access to be added manually. In Device Control and Data Access, click + and choose WritingJail.app. The app path has been copied to the clipboard."
-        alert.addButton(withTitle: "Open Settings")
-        alert.addButton(withTitle: "Cancel")
-        guard alert.runModal() == .alertFirstButtonReturn else {
-            return
-        }
-        FocusKeyboardBlocker.openAccessibilityPrivacySettings()
     }
 
     func releaseSecurityScopedResources() {

@@ -1,4 +1,3 @@
-import CoreGraphics
 import XCTest
 @testable import WritingJailCore
 
@@ -31,35 +30,6 @@ final class WritingJailCoreTests: XCTestCase {
         XCTAssertNil(FocusSessionDuration(input: "1:60"))
         XCTAssertNil(FocusSessionDuration(input: "25h"))
         XCTAssertNil(FocusSessionDuration(input: "abc"))
-    }
-
-    func testEditingShortcutsAreAllowed() {
-        let command = CGEventFlags.maskCommand
-        for key in [0, 6, 7, 8, 9, 24, 27, 69, 78] as [CGKeyCode] {
-            XCTAssertFalse(
-                FocusKeyboardPolicy.shouldBlockKeyboardEvent(type: .keyDown, keyCode: key, flags: command)
-            )
-        }
-    }
-
-    func testAppSwitchingShortcutsAreBlocked() {
-        let command = CGEventFlags.maskCommand
-        XCTAssertTrue(
-            FocusKeyboardPolicy.shouldBlockKeyboardEvent(type: .keyDown, keyCode: 48, flags: command)
-        )
-        XCTAssertTrue(
-            FocusKeyboardPolicy.shouldBlockKeyboardEvent(type: .keyDown, keyCode: 49, flags: command)
-        )
-        XCTAssertTrue(
-            FocusKeyboardPolicy.shouldBlockKeyboardEvent(
-                type: .keyDown,
-                keyCode: 126,
-                flags: .maskControl
-            )
-        )
-        XCTAssertTrue(
-            FocusKeyboardPolicy.shouldBlockKeyboardEvent(type: .keyDown, keyCode: 99, flags: [])
-        )
     }
 
     func testMarkdownFilenames() {
@@ -131,21 +101,4 @@ final class WritingJailCoreTests: XCTestCase {
         )
     }
 
-    func testEmergencyExitChord() {
-        let chord = CGEventFlags([.maskControl, .maskAlternate])
-        XCTAssertTrue(
-            FocusKeyboardPolicy.isEmergencyExitChord(
-                type: .keyDown,
-                keyCode: 53,
-                flags: chord
-            )
-        )
-        XCTAssertFalse(
-            FocusKeyboardPolicy.isEmergencyExitChord(
-                type: .keyDown,
-                keyCode: 53,
-                flags: .maskAlternate
-            )
-        )
-    }
 }

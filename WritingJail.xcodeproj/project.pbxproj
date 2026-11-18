@@ -24,13 +24,11 @@
 		81CC32DE4D237F07FC612061 /* SecondaryDisplayMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25BC04841F687B82491BB983 /* SecondaryDisplayMode.swift */; };
 		854F5F8E9B087A6F8D99D209 /* EditorTextModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 509F3C239D222D7ABCC92AB5 /* EditorTextModel.swift */; };
 		972D53691602BDCA22B903A0 /* FocusSessionDuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC5C140C33E72A7FC62769B7 /* FocusSessionDuration.swift */; };
-		9BF08ED9BEE7F5666CF170CA /* FocusKeyboardBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D05D7C9D2D419028A64BD6 /* FocusKeyboardBlocker.swift */; };
 		B030E4DCD2A3B83374CC28A9 /* WritingJailAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F333ED2B162FBB2DB03618 /* WritingJailAppDelegate.swift */; };
 		B7739D0D52C6106C6D3E84A4 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = B7924AB209BE1908A75AA2D2 /* AppIcon.icns */; };
 		BF3C02F121F076D0DB3AB276 /* DefaultFilenameTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6751BFC300F314CF92B10E5 /* DefaultFilenameTemplate.swift */; };
 		C2D0BEC5066C2F7BD2381FCA /* WritingJailCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 550895D464BBB3C677B945FD /* WritingJailCoreTests.swift */; };
 		C34EF4B409D57A259FB16525 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F7E17B90BA9D7DF30B4CBCB8 /* PrivacyInfo.xcprivacy */; };
-		D2EEA51C2CA9660BB2757079 /* FocusKeyboardPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E842C668940980B46782584 /* FocusKeyboardPolicy.swift */; };
 		F58BC826B99DE589C15BA189 /* FocusSessionOverlayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D23DC59E35A38E5056B605C3 /* FocusSessionOverlayController.swift */; };
 		F7557750F514AE55522A1891 /* WritingJailCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 86A0CF3DB87888B7282FE165 /* WritingJailCore.framework */; };
 /* End PBXBuildFile section */
@@ -86,9 +84,7 @@
 		550895D464BBB3C677B945FD /* WritingJailCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WritingJailCoreTests.swift; sourceTree = "<group>"; };
 		5646477610F86749239CE1CE /* SecurityScopedResourceAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityScopedResourceAccess.swift; sourceTree = "<group>"; };
 		610E8DDB4C572DC0636A5E2D /* RecoveryDraftStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryDraftStore.swift; sourceTree = "<group>"; };
-		68D05D7C9D2D419028A64BD6 /* FocusKeyboardBlocker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusKeyboardBlocker.swift; sourceTree = "<group>"; };
 		6E83860E4A859E42E395F004 /* ClosureActionTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClosureActionTarget.swift; sourceTree = "<group>"; };
-		7E842C668940980B46782584 /* FocusKeyboardPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusKeyboardPolicy.swift; sourceTree = "<group>"; };
 		838114DFCEE2F778A015C454 /* EditorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorPalette.swift; sourceTree = "<group>"; };
 		86A0CF3DB87888B7282FE165 /* WritingJailCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WritingJailCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9EC042BED328D6397451C23E /* WritingJailTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WritingJailTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -179,7 +175,6 @@
 				028AA6FB9029A934D23A7BAE /* EditorSurface.swift */,
 				509F3C239D222D7ABCC92AB5 /* EditorTextModel.swift */,
 				F145BB48D0B3621329630F24 /* EditorTheme.swift */,
-				68D05D7C9D2D419028A64BD6 /* FocusKeyboardBlocker.swift */,
 				C3D911B6B0F963B882F907B6 /* FocusOverlayWindow.swift */,
 				D23DC59E35A38E5056B605C3 /* FocusSessionOverlayController.swift */,
 				CF9AF6BE95ECACE2F2BDC75F /* LegacySettingsMigrator.swift */,
@@ -197,7 +192,6 @@
 			isa = PBXGroup;
 			children = (
 				A6751BFC300F314CF92B10E5 /* DefaultFilenameTemplate.swift */,
-				7E842C668940980B46782584 /* FocusKeyboardPolicy.swift */,
 				AC5C140C33E72A7FC62769B7 /* FocusSessionDuration.swift */,
 				ACC140424CD4222821C9888B /* MarkdownFilename.swift */,
 			);
@@ -347,7 +341,6 @@
 				0DEB6EE1CEF7966B74804473 /* EditorSurface.swift in Sources */,
 				854F5F8E9B087A6F8D99D209 /* EditorTextModel.swift in Sources */,
 				56115B3F0BB561878DB0F1D0 /* EditorTheme.swift in Sources */,
-				9BF08ED9BEE7F5666CF170CA /* FocusKeyboardBlocker.swift in Sources */,
 				3D7483B71831A6186E26CA65 /* FocusOverlayWindow.swift in Sources */,
 				F58BC826B99DE589C15BA189 /* FocusSessionOverlayController.swift in Sources */,
 				0830D3D225714F528A69E084 /* LegacySettingsMigrator.swift in Sources */,
@@ -365,7 +358,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF3C02F121F076D0DB3AB276 /* DefaultFilenameTemplate.swift in Sources */,
-				D2EEA51C2CA9660BB2757079 /* FocusKeyboardPolicy.swift in Sources */,
 				972D53691602BDCA22B903A0 /* FocusSessionDuration.swift in Sources */,
 				04F7B593594A913E9DA47E0D /* MarkdownFilename.swift in Sources */,
 			);
@@ -482,7 +474,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Resources/WritingJail.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
@@ -563,7 +555,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Resources/WritingJail.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;

@@ -25,14 +25,11 @@ App preferences, such as theme and display settings, are stored locally by
 macOS. This local data is not transmitted to the developer or any third party.
 You can delete the recovery draft and app preferences at any time.
 
-## Accessibility and Keyboard Events
+## Permissions
 
-If you enable Input Blocking, macOS may request Accessibility permission.
-Writing Jail uses that permission only to block shortcuts that would leave the
-active focus session, such as Cmd-Tab and Mission Control.
-
-Writing Jail does not record, log, store, or transmit the keys you type.
-Accessibility permission is optional; without it, the app runs in Limited Mode.
+Writing Jail requests access only to files and folders explicitly selected by
+the user. It does not request Accessibility, Input Monitoring, screen
+recording, camera, microphone, or automation permission.
 
 ## Data Sharing
 

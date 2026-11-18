@@ -214,7 +214,6 @@ final class FocusSessionOverlayController {
         themeToggleButton.bezelStyle = .inline
         themeToggleButton.controlSize = .small
         themeToggleButton.contentTintColor = palette.accent
-
         let headerStack = NSStackView(
             views: [
                 title,
